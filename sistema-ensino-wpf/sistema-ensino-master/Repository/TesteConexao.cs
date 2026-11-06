@@ -1,10 +1,12 @@
 ﻿
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
 using sistema_ensino.data;
 using sistema_ensino.model;
-using sistema_ensino.controller;
-using sistema_ensino.Repository;
 
 namespace sistema_ensino.data
 {
@@ -12,66 +14,199 @@ namespace sistema_ensino.data
     {
         public static void Executar()
         {
+            StringBuilder relatorio = new StringBuilder();
+
+            int aprovados = 0;
+            int falhas = 0;
+
+            void Testar(string nome, Action acao)
+            {
+                try
+                {
+                    acao();
+                    aprovados++;
+                    relatorio.AppendLine($"[OK] {nome}");
+                }
+                catch (Exception erro)
+                {
+                    falhas++;
+                    relatorio.AppendLine($"[ERRO] {nome}: {erro.Message}");
+                }
+            }
+
             try
             {
                 using (AppDbContext contexto = new AppDbContext())
                 {
-                    // Verifica a conexão com o banco.
-                    bool conectado = contexto.Database.CanConnect();
-
-                    if (!conectado)
+                    // 1. Conexão com o banco
+                    Testar("Conexão com o banco", () =>
                     {
-                        MessageBox.Show("Não foi possível conectar ao banco.");
-                        return;
-                    }
+                        if (!contexto.Database.CanConnect())
+                            throw new Exception("Banco inacessível.");
+                    });
 
-                    string matricula = "A001";
+                    // 2. Tabelas
+                    Testar("Tabela de usuários", () =>
+                        contexto.Usuarios.Any());
 
-                    // Verifica se o aluno já existe.
-                    Aluno? aluno = contexto.Alunos.Find(matricula);
+                    Testar("Tabela de alunos", () =>
+                        contexto.Alunos.Any());
 
-                    if (aluno is null)
+                    Testar("Tabela de instrutores", () =>
+                        contexto.Instrutores.Any());
+
+                    Testar("Tabela de turmas", () =>
+                        contexto.Turmas.Any());
+
+                    Testar("Tabela de matérias", () =>
+                        contexto.Materias.Any());
+
+                    Testar("Tabela de atividades", () =>
+                        contexto.Atividades.Any());
+
+                    // 3. Categorias pré-cadastradas
+                    Testar("Categorias de atividades", () =>
                     {
-                        aluno = new Aluno(matricula);
+                        var categorias =
+                            contexto.CategoriasAtividade.ToList();
 
-                        aluno.ConcluirPrimeiroAcesso(
-                            "Aluno Teste",
-                            "aluno@teste.com"
-                        );
+                        if (categorias.Count < 5)
+                            throw new Exception(
+                                "As cinco categorias esperadas não foram encontradas."
+                            );
+                    });
 
-                        contexto.Alunos.Add(aluno);
-                        contexto.SaveChanges();
-                    }
-
-                    // Instancia o Repository e o Controller.
-                    AlunoRepository repository = new AlunoRepository(contexto);
-
-                    AlunoController controller = new AlunoController(repository);
-
-                    // Consulta o aluno pelo Controller.
-                    Aluno? alunoEncontrado =
-                        controller.BuscarAlunoPorMatricula(matricula);
-
-                    if (alunoEncontrado is not null)
+                    // 4. Herança de Usuario
+                    Testar("Herança de Aluno para Usuario", () =>
                     {
-                        MessageBox.Show(
-                            $"Teste realizado com sucesso!\n\n" +
-                            $"Matrícula: {alunoEncontrado.Matricula}\n" +
-                            $"Nome: {alunoEncontrado.Nome}\n" +
-                            $"E-mail: {alunoEncontrado.Email}\n" +
-                            $"Tipo: {alunoEncontrado.GetType().Name}"
-                        );
-                    }
-                    else
+                        var aluno = new Aluno("TESTE_HERANCA");
+
+                        if (!(aluno is Usuario))
+                            throw new Exception(
+                                "Aluno não herda de Usuario."
+                            );
+                    });
+
+                    Testar("Herança de Instrutor para Usuario", () =>
                     {
-                        MessageBox.Show("Aluno não encontrado.");
-                    }
+                        var instrutor = contexto.Instrutores
+                            .FirstOrDefault();
+
+                        if (instrutor != null &&
+                            !(instrutor is Usuario))
+                        {
+                            throw new Exception(
+                                "Instrutor não herda de Usuario."
+                            );
+                        }
+                    });
+
+                    // 5. Relacionamento Aluno e Turma
+                    Testar("Relacionamento entre Aluno e Turma", () =>
+                    {
+                        var alunos = contexto.Alunos
+                            .Include(a => a.Turma)
+                            .ToList();
+
+                        foreach (var aluno in alunos)
+                        {
+                            if (aluno.Turma != null &&
+                                !aluno.Turma.Alunos.Any(
+                                    a => a.Matricula == aluno.Matricula))
+                            {
+                                throw new Exception(
+                                    "Relacionamento inconsistente."
+                                );
+                            }
+                        }
+                    });
+
+                    // 6. Relacionamento Instrutor e Turma
+                    Testar("Relacionamento entre Instrutor e Turma", () =>
+                    {
+                        var instrutores = contexto.Instrutores
+                            .Include(i => i.Turma)
+                            .ToList();
+
+                        foreach (var instrutor in instrutores)
+                        {
+                            if (instrutor.Turma != null &&
+                                !instrutor.Turma.Instrutores.Any(
+                                    i => i.Matricula == instrutor.Matricula))
+                            {
+                                throw new Exception(
+                                    "Relacionamento inconsistente."
+                                );
+                            }
+                        }
+                    });
+
+                    // 7. Relacionamento Turma e Materia
+                    Testar("Relacionamento entre Turma e Materia", () =>
+                    {
+                        var turmas = contexto.Turmas
+                            .Include(t => t.Materias)
+                            .ToList();
+
+                        foreach (var turma in turmas)
+                        {
+                            if (turma.Materias == null)
+                                throw new Exception(
+                                    "Coleção de matérias não carregada."
+                                );
+                        }
+                    });
+
+                    // 8. Relacionamento Instrutor e Atividades
+                    Testar("Relacionamento entre Instrutor e Atividades", () =>
+                    {
+                        var instrutores = contexto.Instrutores
+                            .Include(i => i.Atividades)
+                            .ToList();
+
+                        foreach (var instrutor in instrutores)
+                        {
+                            if (instrutor.Atividades == null)
+                                throw new Exception(
+                                    "Coleção de atividades não carregada."
+                                );
+                        }
+                    });
+
+                    // 9. Relacionamento Atividade e Categoria
+                    Testar("Relacionamento entre Atividade e Categoria", () =>
+                    {
+                        var atividades = contexto.Atividades
+                            .Include(a => a.Categoria)
+                            .ToList();
+
+                        foreach (var atividade in atividades)
+                        {
+                            if (atividade.Categoria == null)
+                                throw new Exception(
+                                    "Atividade sem categoria."
+                                );
+                        }
+                    });
                 }
             }
             catch (Exception erro)
             {
-                MessageBox.Show($"Erro: {erro.Message}");
+                falhas++;
+                relatorio.AppendLine(
+                    $"[ERRO GERAL] {erro.Message}"
+                );
             }
+
+            relatorio.AppendLine();
+            relatorio.AppendLine("===== RESULTADO FINAL =====");
+            relatorio.AppendLine($"Testes aprovados: {aprovados}");
+            relatorio.AppendLine($"Testes com falha: {falhas}");
+
+            MessageBox.Show(
+                relatorio.ToString(),
+                "Teste geral do sistema"
+            );
         }
     }
 }
