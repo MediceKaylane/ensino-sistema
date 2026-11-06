@@ -1,30 +1,27 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using sistema_ensino.model;
-using sistema_ensino.data;
+using sistema_ensino.Repository;
 
 namespace sistema_ensino.controller
 {
     // SRP: coordena as operações relacionadas às matérias.
     public class MateriaController
     {
-        // DIP: recebe o contexto do banco pelo construtor.
-        private readonly AppDbContext _contexto;
+        private readonly MateriaRepository _materiaRepository;
 
-        public MateriaController(AppDbContext contexto)
+        // DIP: recebe o repositório pelo construtor.
+        public MateriaController(MateriaRepository materiaRepository)
         {
-            _contexto = contexto ?? throw new ArgumentNullException(nameof(contexto));
+            _materiaRepository = materiaRepository
+                ?? throw new ArgumentNullException(nameof(materiaRepository));
         }
 
-        // Busca uma matéria pelo ID no banco de dados.
+        // Busca uma matéria pelo ID.
         public Materia? BuscarMateriaPorId(int id)
         {
-            return _contexto.Materias
-                .Include(materia => materia.Atividades)
-                .FirstOrDefault(materia => materia.Id == id);
+            return _materiaRepository.BuscarMateriaPorId(id);
         }
 
         // Adiciona uma atividade existente a uma matéria.
@@ -38,15 +35,15 @@ namespace sistema_ensino.controller
             if (materia is null)
                 throw new InvalidOperationException("Matéria não encontrada.");
 
-            Atividade? atividadeBanco = _contexto.Atividades
-                .Find(atividade.Id);
+            Atividade? atividadeBanco =
+                _materiaRepository.BuscarAtividadePorId(atividade.Id);
 
             if (atividadeBanco is null)
                 throw new InvalidOperationException("Atividade não encontrada.");
 
             materia.AdicionarAtividade(atividadeBanco);
 
-            _contexto.SaveChanges();
+            _materiaRepository.Salvar();
         }
 
         // Remove uma atividade de uma matéria.
@@ -69,7 +66,7 @@ namespace sistema_ensino.controller
 
             materia.RemoverAtividade(atividadeAssociada);
 
-            _contexto.SaveChanges();
+            _materiaRepository.Salvar();
         }
 
         // Consulta as atividades de uma matéria.

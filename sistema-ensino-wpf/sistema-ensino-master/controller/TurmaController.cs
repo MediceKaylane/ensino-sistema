@@ -1,31 +1,26 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using sistema_ensino.model;
-using sistema_ensino.data;
+using sistema_ensino.Repository;
 
 namespace sistema_ensino.controller
 {
     // SRP: coordena as operações relacionadas às turmas.
     public class TurmaController
     {
-        // DIP: recebe o contexto do banco pelo construtor.
-        private readonly AppDbContext _contexto;
+        private readonly TurmaRepository _turmaRepository;
 
-        public TurmaController(AppDbContext contexto)
+        // DIP: recebe o repositório pelo construtor.
+        public TurmaController(TurmaRepository turmaRepository)
         {
-            _contexto = contexto ?? throw new ArgumentNullException(nameof(contexto));
+            _turmaRepository = turmaRepository
+                ?? throw new ArgumentNullException(nameof(turmaRepository));
         }
 
         // Busca uma turma e carrega seus relacionamentos.
         public Turma? BuscarTurmaPorId(int id)
         {
-            return _contexto.Turmas
-                .Include(turma => turma.Materias)
-                .Include(turma => turma.Alunos)
-                .Include(turma => turma.Instrutores)
-                .FirstOrDefault(turma => turma.Id == id);
+            return _turmaRepository.BuscarTurmaPorId(id);
         }
 
         // Associa uma matéria à turma.
@@ -39,14 +34,15 @@ namespace sistema_ensino.controller
             if (turma is null)
                 throw new InvalidOperationException("Turma não encontrada.");
 
-            Materia? materiaBanco = _contexto.Materias.Find(materia.Id);
+            Materia? materiaBanco =
+                _turmaRepository.BuscarMateriaPorId(materia.Id);
 
             if (materiaBanco is null)
                 throw new InvalidOperationException("Matéria não encontrada.");
 
             turma.AdicionarMateria(materiaBanco);
 
-            _contexto.SaveChanges();
+            _turmaRepository.Salvar();
         }
 
         // Remove uma matéria da turma.
@@ -68,7 +64,7 @@ namespace sistema_ensino.controller
 
             turma.RemoverMateria(materiaAssociada);
 
-            _contexto.SaveChanges();
+            _turmaRepository.Salvar();
         }
 
         // Associa um instrutor à turma.
@@ -82,15 +78,15 @@ namespace sistema_ensino.controller
             if (turma is null)
                 throw new InvalidOperationException("Turma não encontrada.");
 
-            Instrutor? instrutorBanco = _contexto.Instrutores
-                .Find(instrutor.Matricula);
+            Instrutor? instrutorBanco =
+                _turmaRepository.BuscarInstrutorPorMatricula(instrutor.Matricula);
 
             if (instrutorBanco is null)
                 throw new InvalidOperationException("Instrutor não encontrado.");
 
             turma.AdicionarInstrutor(instrutorBanco);
 
-            _contexto.SaveChanges();
+            _turmaRepository.Salvar();
         }
 
         // Associa um aluno à turma.
@@ -104,14 +100,15 @@ namespace sistema_ensino.controller
             if (turma is null)
                 throw new InvalidOperationException("Turma não encontrada.");
 
-            Aluno? alunoBanco = _contexto.Alunos.Find(aluno.Matricula);
+            Aluno? alunoBanco =
+                _turmaRepository.BuscarAlunoPorMatricula(aluno.Matricula);
 
             if (alunoBanco is null)
                 throw new InvalidOperationException("Aluno não encontrado.");
 
             turma.AdicionarAluno(alunoBanco);
 
-            _contexto.SaveChanges();
+            _turmaRepository.Salvar();
         }
     }
 }

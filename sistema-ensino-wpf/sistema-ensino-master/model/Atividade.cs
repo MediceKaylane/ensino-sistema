@@ -39,4 +39,3 @@ namespace sistema_ensino.model
 //OCP — Aberto/Fechado: a interface IAtividade estabelece um contrato que pode ser implementado por outras classes.
 //DIP — Inversão de Dependência: outras partes do sistema podem depender da abstração IAtividade, em vez de depender diretamente da classe concreta Atividade.
 
-//teste git
