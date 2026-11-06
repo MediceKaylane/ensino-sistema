@@ -38,3 +38,5 @@ namespace sistema_ensino.model
 //SRP — Responsabilidade Única: CategoriaAtividade fica responsável por representar as categorias.
 //OCP — Aberto/Fechado: a interface IAtividade estabelece um contrato que pode ser implementado por outras classes.
 //DIP — Inversão de Dependência: outras partes do sistema podem depender da abstração IAtividade, em vez de depender diretamente da classe concreta Atividade.
+
+//teste git
