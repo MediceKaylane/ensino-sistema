@@ -18,6 +18,10 @@ namespace sistema_ensino.model
             }
 
             Turma = turma;
+
+
+            //bd
+
         }
 
         public List<Atividade> VisualizarAtividades()

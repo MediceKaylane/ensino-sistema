@@ -1,0 +1,39 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj.user
+*.vcxproj.user
+
+# Visual Studio caches and local layout
+*.vsidx
+SemanticSymbols.db
+SemanticSymbols.db-shm
+SemanticSymbols.db-wal
+DocumentLayout.json
+
+# .NET build output
+[Bb]in/
+[Oo]bj/
+
+# Test and coverage output
+TestResults/
+.coverage
+*.coverage
+*.coveragexml
+
+# NuGet and package caches
+*.nupkg
+*.snupkg
+packages/
+
+# IDE and local tooling caches
+_ReSharper*/
+*.DotSettings.user
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
