@@ -1,5 +1,7 @@
-﻿using sistema_ensino.data;
+﻿
+using sistema_ensino.data;
 using sistema_ensino.model;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +28,17 @@ namespace sistema_ensino.Repository
         public List<Atividade> ConsultarAtividades()
         {
             return _contexto.Atividades.ToList();
+        }
+
+        // Consulta atividades por categoria utilizando SQL direto.
+        public List<Atividade> ConsultarAtividadesPorCategoria(int categoriaId)
+        {
+            return _contexto.Atividades
+                .FromSqlInterpolated(
+                    $"SELECT * FROM Atividades WHERE CategoriaAtividadeId = {categoriaId}"
+                )
+                .Include(atividade => atividade.Categoria)
+                .ToList();
         }
     }
 }

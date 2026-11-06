@@ -7,6 +7,8 @@ using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using sistema_ensino.data;
 using sistema_ensino.model;
+using sistema_ensino.controller;
+using sistema_ensino.Repository;
 
 namespace sistema_ensino.data
 {
@@ -186,6 +188,27 @@ namespace sistema_ensino.data
                                 throw new Exception(
                                     "Atividade sem categoria."
                                 );
+                        }
+                    });
+
+                    // 10. Consulta SQL direta por categoria
+                    Testar("Consulta SQL direta - Prova de Lógica", () =>
+                    {
+                        var repositorio = new AtividadeRepository(contexto);
+                        var controller = new AtividadeController(repositorio);
+
+                        var atividades =
+                            controller.ConsultarAtividadesPorCategoria(1);
+
+                        var prova = atividades.FirstOrDefault(
+                            a => a.Titulo == "Prova de Lógica"
+                        );
+
+                        if (prova == null)
+                        {
+                            throw new Exception(
+                                "A atividade Prova de Lógica não foi encontrada na categoria Prova."
+                            );
                         }
                     });
                 }

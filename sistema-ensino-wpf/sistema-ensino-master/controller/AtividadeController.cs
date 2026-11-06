@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using sistema_ensino.model;
 using sistema_ensino.Repository;
@@ -40,6 +41,17 @@ namespace sistema_ensino.controller
         public List<Atividade> ConsultarAtividades()
         {
             return _atividadeRepository.ConsultarAtividades();
+        }
+
+        // Consulta atividades por categoria.
+        public List<Atividade> ConsultarAtividadesPorCategoria(int categoriaId)
+        {
+            if (categoriaId <= 0)
+            {
+                throw new ArgumentException("O ID da categoria deve ser maior que zero.");
+            }
+
+            return _atividadeRepository.ConsultarAtividadesPorCategoria(categoriaId);
         }
     }
 }
