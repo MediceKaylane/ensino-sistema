@@ -1,21 +1,20 @@
-﻿
-using System;
-using System.Linq;
+﻿using System;
 using sistema_ensino.model;
-using sistema_ensino.data;
+using sistema_ensino.Repository;
 
 namespace sistema_ensino.controller
 {
     public class UsuarioController
     {
-        private readonly AppDbContext _contexto;
+        private readonly UsuarioRepository _usuarioRepository;
 
-        public UsuarioController(AppDbContext contexto)
+        public UsuarioController(UsuarioRepository usuarioRepository)
         {
-            _contexto = contexto ?? throw new ArgumentNullException(nameof(contexto));
+            _usuarioRepository = usuarioRepository
+                ?? throw new ArgumentNullException(nameof(usuarioRepository));
         }
 
-        // Consulta um usuário pela matrícula no banco de dados.
+        // Consulta um usuário pela matrícula.
         public Usuario? BuscarPorMatricula(string matricula)
         {
             if (string.IsNullOrWhiteSpace(matricula))
@@ -23,7 +22,7 @@ namespace sistema_ensino.controller
                 return null;
             }
 
-            return _contexto.Usuarios.Find(matricula);
+            return _usuarioRepository.BuscarPorMatricula(matricula);
         }
 
         // Verifica se o usuário ainda não concluiu o primeiro acesso.
@@ -46,7 +45,7 @@ namespace sistema_ensino.controller
 
             usuario.ConcluirPrimeiroAcesso(nome, email);
 
-            _contexto.SaveChanges();
+            _usuarioRepository.Salvar();
 
             return true;
         }

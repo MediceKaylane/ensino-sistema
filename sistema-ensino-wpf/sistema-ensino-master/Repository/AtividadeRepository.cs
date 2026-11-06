@@ -1,10 +1,31 @@
-﻿using System;
+﻿using sistema_ensino.data;
+using sistema_ensino.model;
+using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace sistema_ensino.Repository
 {
-    internal class AtividadeRepository
+    public class AtividadeRepository
     {
+        private readonly AppDbContext _contexto;
+
+        public AtividadeRepository(AppDbContext contexto)
+        {
+            _contexto = contexto ?? throw new ArgumentNullException(nameof(contexto));
+        }
+
+        // Busca uma atividade pelo ID.
+        public Atividade? BuscarAtividadePorId(int id)
+        {
+            return _contexto.Atividades
+                .FirstOrDefault(atividade => atividade.Id == id);
+        }
+
+        // Consulta todas as atividades cadastradas.
+        public List<Atividade> ConsultarAtividades()
+        {
+            return _contexto.Atividades.ToList();
+        }
     }
 }

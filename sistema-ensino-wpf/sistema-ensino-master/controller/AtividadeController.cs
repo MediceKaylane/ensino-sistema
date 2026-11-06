@@ -1,28 +1,26 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using sistema_ensino.model;
-using sistema_ensino.data;
+using sistema_ensino.Repository;
 
 namespace sistema_ensino.controller
 {
     // SRP: coordena as operações relacionadas às atividades.
     public class AtividadeController
     {
-        // DIP: recebe o contexto do banco pelo construtor.
-        private readonly AppDbContext _contexto;
+        private readonly AtividadeRepository _atividadeRepository;
 
-        public AtividadeController(AppDbContext contexto)
+        // DIP: recebe o repositório pelo construtor.
+        public AtividadeController(AtividadeRepository atividadeRepository)
         {
-            _contexto = contexto ?? throw new ArgumentNullException(nameof(contexto));
+            _atividadeRepository = atividadeRepository
+                ?? throw new ArgumentNullException(nameof(atividadeRepository));
         }
 
-        // Busca uma atividade pelo ID no banco de dados.
+        // Busca uma atividade pelo ID.
         public Atividade? BuscarAtividadePorId(int id)
         {
-            return _contexto.Atividades
-                .FirstOrDefault(atividade => atividade.Id == id);
+            return _atividadeRepository.BuscarAtividadePorId(id);
         }
 
         // Consulta os detalhes de uma atividade.
@@ -38,10 +36,10 @@ namespace sistema_ensino.controller
             return atividade.Visualizar();
         }
 
-        // Consulta todas as atividades cadastradas no banco.
+        // Consulta todas as atividades cadastradas.
         public List<Atividade> ConsultarAtividades()
         {
-            return _contexto.Atividades.ToList();
+            return _atividadeRepository.ConsultarAtividades();
         }
     }
 }
