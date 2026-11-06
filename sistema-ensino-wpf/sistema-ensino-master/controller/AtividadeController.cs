@@ -43,7 +43,7 @@ namespace sistema_ensino.controller
             return _atividadeRepository.ConsultarAtividades();
         }
 
-        // Consulta atividades por categoria.
+        // Consulta atividades por categoria utilizando Entity Framework.
         public List<Atividade> ConsultarAtividadesPorCategoria(int categoriaId)
         {
             if (categoriaId <= 0)
@@ -52,6 +52,17 @@ namespace sistema_ensino.controller
             }
 
             return _atividadeRepository.ConsultarAtividadesPorCategoria(categoriaId);
+        }
+
+        // Consulta atividades por categoria sem utilizar Entity Framework.
+        public List<Atividade> ConsultarAtividadesPorCategoriaSemEF(int categoriaId)
+        {
+            if (categoriaId <= 0)
+            {
+                throw new ArgumentException("O ID da categoria deve ser maior que zero.");
+            }
+
+            return _atividadeRepository.ConsultarAtividadesPorCategoriaSemEF(categoriaId);
         }
     }
 }

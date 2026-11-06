@@ -191,12 +191,12 @@ namespace sistema_ensino.data
                         }
                     });
 
-                    // 10. Consulta SQL direta por categoria
-                    Testar("Consulta SQL direta - Prova de Lógica", () =>
-                    {
-                        var repositorio = new AtividadeRepository(contexto);
-                        var controller = new AtividadeController(repositorio);
+                    var repositorio = new AtividadeRepository(contexto);
+                    var controller = new AtividadeController(repositorio);
 
+                    // 10. Consulta SQL utilizando Entity Framework
+                    Testar("Consulta SQL via EF Core - Prova de Lógica", () =>
+                    {
                         var atividades =
                             controller.ConsultarAtividadesPorCategoria(1);
 
@@ -208,6 +208,24 @@ namespace sistema_ensino.data
                         {
                             throw new Exception(
                                 "A atividade Prova de Lógica não foi encontrada na categoria Prova."
+                            );
+                        }
+                    });
+
+                    // 11. Consulta SQL sem Entity Framework (ADO.NET)
+                    Testar("Consulta SQL sem EF - Prova de Lógica", () =>
+                    {
+                        var atividades =
+                            controller.ConsultarAtividadesPorCategoriaSemEF(1);
+
+                        var prova = atividades.FirstOrDefault(
+                            a => a.Titulo == "Prova de Lógica"
+                        );
+
+                        if (prova == null)
+                        {
+                            throw new Exception(
+                                "A atividade Prova de Lógica não foi encontrada na consulta ADO.NET."
                             );
                         }
                     });

@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace sistema_ensino.model
 {
     public class Atividade : IAtividade
@@ -16,6 +18,7 @@ namespace sistema_ensino.model
         {
         }
 
+        // Construtor utilizado para criar uma atividade normalmente.
         public Atividade(
             int id,
             string titulo,
@@ -39,6 +42,35 @@ namespace sistema_ensino.model
             Titulo = titulo;
             Descricao = descricao;
             ArquivoOuLink = arquivoOuLink;
+            CategoriaAtividadeId = categoria.Id;
+        }
+
+        // Construtor utilizado na consulta SQL direta sem Entity Framework.
+        public Atividade(
+            int id,
+            string titulo,
+            string descricao,
+            string arquivoOuLink,
+            int categoriaAtividadeId,
+            CategoriaAtividade categoria)
+        {
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new ArgumentException("O título é obrigatório.");
+
+            if (string.IsNullOrWhiteSpace(descricao))
+                throw new ArgumentException("A descrição é obrigatória.");
+
+            if (string.IsNullOrWhiteSpace(arquivoOuLink))
+                throw new ArgumentException("O arquivo ou link é obrigatório.");
+
+            Categoria = categoria
+                ?? throw new ArgumentNullException(nameof(categoria));
+
+            Id = id;
+            Titulo = titulo;
+            Descricao = descricao;
+            ArquivoOuLink = arquivoOuLink;
+            CategoriaAtividadeId = categoriaAtividadeId;
         }
 
         public string Visualizar()
