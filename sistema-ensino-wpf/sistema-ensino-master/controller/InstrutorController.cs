@@ -1,25 +1,23 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using sistema_ensino.model;
-using sistema_ensino.data;
+using sistema_ensino.Repository;
 
 namespace sistema_ensino.controller
 {
     // SRP: coordena as operações relacionadas aos instrutores.
     public class InstrutorController
     {
-        private readonly AppDbContext _contexto;
+        private readonly InstrutorRepository _instrutorRepository;
 
-        // DIP: recebe a dependência pelo construtor.
-        public InstrutorController(AppDbContext contexto)
+        // DIP: recebe o repositório pelo construtor.
+        public InstrutorController(InstrutorRepository instrutorRepository)
         {
-            _contexto = contexto ?? throw new ArgumentNullException(nameof(contexto));
+            _instrutorRepository = instrutorRepository
+                ?? throw new ArgumentNullException(nameof(instrutorRepository));
         }
 
-        // Busca um instrutor pela matrícula no banco de dados.
+        // Busca um instrutor pela matrícula.
         public Instrutor? BuscarInstrutorPorMatricula(string matricula)
         {
             if (string.IsNullOrWhiteSpace(matricula))
@@ -27,12 +25,10 @@ namespace sistema_ensino.controller
                 return null;
             }
 
-            return _contexto.Instrutores
-                .Include(instrutor => instrutor.Atividades)
-                .FirstOrDefault(instrutor => instrutor.Matricula == matricula);
+            return _instrutorRepository.BuscarInstrutorPorMatricula(matricula);
         }
 
-        // Publica uma atividade e salva no banco de dados.
+        // Publica uma atividade.
         public void PublicarAtividade(string matricula, Atividade atividade)
         {
             if (atividade is null)
@@ -49,7 +45,7 @@ namespace sistema_ensino.controller
 
             instrutor.PublicarAtividade(atividade);
 
-            _contexto.SaveChanges();
+            _instrutorRepository.Salvar();
         }
 
         // Consulta as atividades cadastradas pelo instrutor.
