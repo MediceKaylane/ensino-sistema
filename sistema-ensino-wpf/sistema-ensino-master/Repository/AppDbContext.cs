@@ -35,6 +35,7 @@ namespace sistema_ensino.data
         public DbSet<Turma> Turmas => Set<Turma>();
         public DbSet<Materia> Materias => Set<Materia>();
         public DbSet<Atividade> Atividades => Set<Atividade>();
+        public DbSet<CategoriaAtividade> CategoriasAtividade => Set<CategoriaAtividade>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -66,6 +67,30 @@ namespace sistema_ensino.data
             modelBuilder.Entity<Materia>()
                 .HasMany(materia => materia.Atividades)
                 .WithOne()
+                .OnDelete(DeleteBehavior.NoAction);
+
+
+            modelBuilder.Entity<CategoriaAtividade>()
+                .HasKey(categoria => categoria.Id);
+
+            modelBuilder.Entity<CategoriaAtividade>()
+                .Property(categoria => categoria.Nome)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<CategoriaAtividade>()
+                .HasData(
+                    new { Id = 1, Nome = "Prova" },
+                    new { Id = 2, Nome = "Trabalho" },
+                    new { Id = 3, Nome = "Exercicio" },
+                    new { Id = 4, Nome = "Seminario" },
+                    new { Id = 5, Nome = "Projeto" }
+                );
+
+            modelBuilder.Entity<Atividade>()
+                .HasOne(atividade => atividade.Categoria)
+                .WithMany()
+                .HasForeignKey(atividade => atividade.CategoriaAtividadeId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

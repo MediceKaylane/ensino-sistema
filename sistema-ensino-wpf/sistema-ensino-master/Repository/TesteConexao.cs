@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using sistema_ensino.data;
 using sistema_ensino.model;
 using sistema_ensino.controller;
+using sistema_ensino.Repository;
 
 namespace sistema_ensino.data
 {
@@ -38,7 +39,8 @@ namespace sistema_ensino.data
                         contexto.SaveChanges();
                     }
 
-                    UsuarioController controller = new UsuarioController(contexto);
+                    UsuarioController controller = new UsuarioController(
+                        new UsuarioRepository(contexto));
 
                     Usuario? usuarioEncontrado =
                         controller.BuscarPorMatricula(matricula);

@@ -1,6 +1,4 @@
-﻿using sistema_ensino.model;
-
-namespace sistema_ensino.model
+﻿namespace sistema_ensino.model
 {
     public class Atividade : IAtividade
     {
@@ -8,7 +6,13 @@ namespace sistema_ensino.model
         public string Titulo { get; private set; }
         public string Descricao { get; private set; }
         public string ArquivoOuLink { get; private set; }
+
+        public int CategoriaAtividadeId { get; private set; }
         public CategoriaAtividade Categoria { get; private set; }
+
+        private Atividade()
+        {
+        }
 
         public Atividade(
             int id,
@@ -22,6 +26,7 @@ namespace sistema_ensino.model
             Descricao = descricao;
             ArquivoOuLink = arquivoOuLink;
             Categoria = categoria;
+            CategoriaAtividadeId = categoria.Id;
         }
 
         public string Visualizar()
@@ -29,13 +34,7 @@ namespace sistema_ensino.model
             return $"Título: {Titulo}\n" +
                    $"Descrição: {Descricao}\n" +
                    $"Arquivo ou link: {ArquivoOuLink}\n" +
-                   $"Categoria: {Categoria}";
+                   $"Categoria: {Categoria.Nome}";
         }
     }
 }
-
-
-//SRP — Responsabilidade Única: CategoriaAtividade fica responsável por representar as categorias.
-//OCP — Aberto/Fechado: a interface IAtividade estabelece um contrato que pode ser implementado por outras classes.
-//DIP — Inversão de Dependência: outras partes do sistema podem depender da abstração IAtividade, em vez de depender diretamente da classe concreta Atividade.
-

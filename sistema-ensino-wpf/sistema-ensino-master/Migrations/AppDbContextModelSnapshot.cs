@@ -48,6 +48,9 @@ namespace sistema_ensino.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Categoria")
+                        .HasColumnType("int");
+
                     b.Property<string>("Descricao")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -136,7 +139,7 @@ namespace sistema_ensino.Migrations
 
                     b.HasKey("Matricula");
 
-                    b.ToTable("Usuario");
+                    b.ToTable("Usuario", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Usuario");
 
