@@ -1,23 +1,21 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using sistema_ensino.model;
-using sistema_ensino.data;
+using sistema_ensino.Repository;
 
 namespace sistema_ensino.controller
 {
     public class AlunoController
     {
-        private readonly AppDbContext _contexto;
+        private readonly AlunoRepository _alunoRepository;
 
-        public AlunoController(AppDbContext contexto)
+        public AlunoController(AlunoRepository alunoRepository)
         {
-            _contexto = contexto ?? throw new ArgumentNullException(nameof(contexto));
+            _alunoRepository = alunoRepository
+                ?? throw new ArgumentNullException(nameof(alunoRepository));
         }
 
-        // Busca um aluno pela matrícula no banco de dados.
+        // Busca um aluno pela matrícula.
         public Aluno? BuscarAlunoPorMatricula(string matricula)
         {
             if (string.IsNullOrWhiteSpace(matricula))
@@ -25,11 +23,7 @@ namespace sistema_ensino.controller
                 return null;
             }
 
-            return _contexto.Alunos
-                .Include(aluno => aluno.Turma)
-                    .ThenInclude(turma => turma!.Instrutores)
-                        .ThenInclude(instrutor => instrutor.Atividades)
-                .FirstOrDefault(aluno => aluno.Matricula == matricula);
+            return _alunoRepository.BuscarAlunoPorMatricula(matricula);
         }
 
         // Consulta as atividades disponibilizadas pelos instrutores da turma.
