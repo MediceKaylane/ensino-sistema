@@ -1,8 +1,6 @@
 ﻿
 using System;
-using System.Linq;
 using System.Windows;
-using Microsoft.EntityFrameworkCore;
 using sistema_ensino.data;
 using sistema_ensino.model;
 using sistema_ensino.controller;
@@ -18,7 +16,7 @@ namespace sistema_ensino.data
             {
                 using (AppDbContext contexto = new AppDbContext())
                 {
-                    contexto.Database.Migrate();
+                    // Verifica a conexão com o banco.
                     bool conectado = contexto.Database.CanConnect();
 
                     if (!conectado)
@@ -29,33 +27,44 @@ namespace sistema_ensino.data
 
                     string matricula = "A001";
 
+                    // Verifica se o aluno já existe.
                     Aluno? aluno = contexto.Alunos.Find(matricula);
 
                     if (aluno is null)
                     {
                         aluno = new Aluno(matricula);
 
+                        aluno.ConcluirPrimeiroAcesso(
+                            "Aluno Teste",
+                            "aluno@teste.com"
+                        );
+
                         contexto.Alunos.Add(aluno);
                         contexto.SaveChanges();
                     }
 
-                    UsuarioController controller = new UsuarioController(
-                        new UsuarioRepository(contexto));
+                    // Instancia o Repository e o Controller.
+                    AlunoRepository repository = new AlunoRepository(contexto);
 
-                    Usuario? usuarioEncontrado =
-                        controller.BuscarPorMatricula(matricula);
+                    AlunoController controller = new AlunoController(repository);
 
-                    if (usuarioEncontrado is not null)
+                    // Consulta o aluno pelo Controller.
+                    Aluno? alunoEncontrado =
+                        controller.BuscarAlunoPorMatricula(matricula);
+
+                    if (alunoEncontrado is not null)
                     {
                         MessageBox.Show(
-                            $"Teste realizado com sucesso!\n" +
-                            $"Matrícula encontrada: {usuarioEncontrado.Matricula}\n" +
-                            $"Tipo: {usuarioEncontrado.GetType().Name}"
+                            $"Teste realizado com sucesso!\n\n" +
+                            $"Matrícula: {alunoEncontrado.Matricula}\n" +
+                            $"Nome: {alunoEncontrado.Nome}\n" +
+                            $"E-mail: {alunoEncontrado.Email}\n" +
+                            $"Tipo: {alunoEncontrado.GetType().Name}"
                         );
                     }
                     else
                     {
-                        MessageBox.Show("Usuário não encontrado.");
+                        MessageBox.Show("Aluno não encontrado.");
                     }
                 }
             }
