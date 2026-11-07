@@ -1,4 +1,5 @@
-﻿using System;
+using System.Security.Cryptography;
+using System;
 using sistema_ensino.model;
 using sistema_ensino.Repository;
 
@@ -31,6 +32,57 @@ namespace sistema_ensino.controller
             Usuario? usuario = BuscarPorMatricula(matricula);
 
             return usuario is not null && !usuario.PrimeiroAcessoConcluido;
+        }
+
+        public bool DefinirSenha(string matricula, string nome, string email, string senha)
+        {
+            if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(email) || senha.Length < 8)
+            {
+                return false;
+            }
+
+            byte[] salt = RandomNumberGenerator.GetBytes(16);
+            byte[] hash = GerarHash(senha, salt);
+            string registro = $"pbkdf2-sha256:{Convert.ToHexString(salt)}:{Convert.ToHexString(hash)}";
+            return _usuarioRepository.AtivarAcesso(matricula, nome, email, registro);
+        }
+
+        public Usuario? Autenticar(string matricula, string senha)
+        {
+            Usuario? usuario = BuscarPorMatricula(matricula);
+            if (usuario is null || !usuario.PrimeiroAcessoConcluido || !ConferirSenha(senha, usuario.SenhaHash))
+            {
+                return null;
+            }
+
+            _usuarioRepository.CarregarDadosDoPortal(usuario);
+            return usuario;
+        }
+
+        private static bool ConferirSenha(string senha, string registro)
+        {
+            string[] partes = registro.Split(':');
+            if (partes.Length != 3 || partes[0] != "pbkdf2-sha256" ||
+                partes[1].Length != 32 || partes[2].Length != 64)
+            {
+                return false;
+            }
+
+            try
+            {
+                byte[] salt = Convert.FromHexString(partes[1]);
+                byte[] hash = Convert.FromHexString(partes[2]);
+                return CryptographicOperations.FixedTimeEquals(GerarHash(senha, salt), hash);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
+
+        private static byte[] GerarHash(string senha, byte[] salt)
+        {
+            return Rfc2898DeriveBytes.Pbkdf2(senha, salt, 600_000, HashAlgorithmName.SHA256, 32);
         }
 
         // Salva as informações do primeiro acesso no banco de dados.

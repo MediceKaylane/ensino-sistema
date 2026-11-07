@@ -1,13 +1,52 @@
 <Window x:Class="sistema_ensino.LoginForm"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="LoginForm" Width="800" Height="450">
+        Style="{StaticResource JanelaPortal}" WindowStartupLocation="CenterScreen" Title="Portal de Ensino" Width="900" Height="720"
+        MinWidth="660" MinHeight="460">
     <Grid>
-        <Border x:Name="login"
-                Background="#F4ECD8"
-                CornerRadius="24"
-                Width="429" Height="354"
-                HorizontalAlignment="Left" VerticalAlignment="Top"
-                Margin="160,45,0,0" />
+        <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="3*"/></Grid.ColumnDefinitions>
+        <Border Background="#17294C" Padding="32">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="AMBIENTE ACADÊMICO" Foreground="#B6C9FF" FontSize="12" FontWeight="Bold"/>
+                <TextBlock Text="Portal de Ensino" Foreground="White" FontSize="38" FontWeight="Bold"
+                           TextWrapping="Wrap" Margin="0,12,0,16"/>
+                <TextBlock Text="Turmas, matérias e atividades em um só lugar."
+                           Foreground="#D5E1FA" TextWrapping="Wrap" FontSize="17"/>
+            </StackPanel>
+        </Border>
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <Border Background="White" CornerRadius="16" BorderBrush="#DCE5F4" BorderThickness="1"
+                    Margin="30" Padding="28" MaxWidth="440" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock x:Name="Titulo" Text="Acesse o portal" FontSize="28" FontWeight="Bold"/>
+                    <TextBlock x:Name="Subtitulo" Text="Entre com sua matrícula e senha." Foreground="#536583"
+                               TextWrapping="Wrap" Margin="0,6,0,10"/>
+                    <TextBlock Text="Matrícula" Style="{StaticResource RotuloPortal}"/>
+                    <TextBox x:Name="Matricula" Style="{StaticResource EntradaTexto}" AutomationProperties.Name="Matrícula"/>
+                    <StackPanel x:Name="DadosPrimeiroAcesso" Visibility="Collapsed">
+                        <TextBlock Text="Nome completo" Style="{StaticResource RotuloPortal}"/>
+                        <TextBox x:Name="Nome" Style="{StaticResource EntradaTexto}" AutomationProperties.Name="Nome completo"/>
+                        <TextBlock Text="E-mail" Style="{StaticResource RotuloPortal}"/>
+                        <TextBox x:Name="Email" Style="{StaticResource EntradaTexto}" AutomationProperties.Name="E-mail"/>
+                    </StackPanel>
+                    <TextBlock Text="Senha" Style="{StaticResource RotuloPortal}"/>
+                    <PasswordBox x:Name="Senha" Style="{StaticResource EntradaSenha}" AutomationProperties.Name="Senha"/>
+                    <StackPanel x:Name="DadosConfirmacao" Visibility="Collapsed">
+                        <TextBlock Text="Confirme a senha" Style="{StaticResource RotuloPortal}"/>
+                        <PasswordBox x:Name="Confirmacao" Style="{StaticResource EntradaSenha}" AutomationProperties.Name="Confirme a senha"/>
+                    </StackPanel>
+                    <TextBlock x:Name="Mensagem" Foreground="#A6293C" TextWrapping="Wrap" Margin="0,9,0,0"
+                               AutomationProperties.LiveSetting="Polite"/>
+                    <Button x:Name="Acao" Content="Entrar" IsDefault="True" Click="ExecutarAcesso"
+                            Style="{StaticResource BotaoPortal}" Margin="0,12,0,8"/>
+                    <WrapPanel>
+                        <Button x:Name="Alternar" Content="Primeiro acesso" Click="AlternarAcesso"
+                                Style="{StaticResource BotaoSuave}" Margin="0,0,8,6"/>
+                        <Button x:Name="Recuperar" Content="Esqueci a senha" Click="OrientarRecuperacao"
+                                Style="{StaticResource BotaoSuave}" Margin="0,0,0,6"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
     </Grid>
 </Window>
