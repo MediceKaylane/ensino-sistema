@@ -19,7 +19,7 @@ namespace sistema_ensino.controller
         }
 
         // Busca uma atividade pelo ID.
-        public Atividade? BuscarAtividadePorId(int id)
+        public AtividadeBase? BuscarAtividadePorId(int id)
         {
             return _atividadeRepository.BuscarAtividadePorId(id);
         }
@@ -27,7 +27,7 @@ namespace sistema_ensino.controller
         // Consulta os detalhes de uma atividade.
         public string VisualizarAtividade(int id)
         {
-            Atividade? atividade = BuscarAtividadePorId(id);
+            AtividadeBase? atividade = BuscarAtividadePorId(id);
 
             if (atividade is null)
             {
@@ -38,13 +38,13 @@ namespace sistema_ensino.controller
         }
 
         // Consulta todas as atividades cadastradas.
-        public List<Atividade> ConsultarAtividades()
+        public List<AtividadeBase> ConsultarAtividades()
         {
             return _atividadeRepository.ConsultarAtividades();
         }
 
         // Consulta atividades por categoria utilizando Entity Framework.
-        public List<Atividade> ConsultarAtividadesPorCategoria(int categoriaId)
+        public List<AtividadeBase> ConsultarAtividadesPorCategoria(int categoriaId)
         {
             if (categoriaId <= 0)
             {
@@ -55,7 +55,7 @@ namespace sistema_ensino.controller
         }
 
         // Consulta atividades por categoria sem utilizar Entity Framework.
-        public List<Atividade> ConsultarAtividadesPorCategoriaSemEF(int categoriaId)
+        public List<AtividadeBase> ConsultarAtividadesPorCategoriaSemEF(int categoriaId)
         {
             if (categoriaId <= 0)
             {

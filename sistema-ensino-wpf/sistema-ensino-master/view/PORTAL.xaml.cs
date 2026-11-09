@@ -33,7 +33,7 @@ namespace sistema_ensino
 
         private void MostrarAtividades(object sender, RoutedEventArgs e)
         {
-            IEnumerable<Atividade> atividades = _usuario switch
+            IEnumerable<AtividadeBase> atividades = _usuario switch
             {
                 Instrutor instrutor => instrutor.Atividades,
                 Aluno aluno => aluno.VisualizarAtividades(),

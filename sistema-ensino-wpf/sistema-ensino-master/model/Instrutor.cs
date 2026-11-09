@@ -7,7 +7,7 @@ namespace sistema_ensino.model
     public class Instrutor : Usuario
     {
         public Turma? Turma { get; private set; }
-        public List<Atividade> Atividades { get; private set; } = new();
+        public List<AtividadeBase> Atividades { get; private set; } = new();
         public Instrutor(string matricula) : base(matricula)
         {
         }
@@ -20,7 +20,7 @@ namespace sistema_ensino.model
 
             Turma = turma;
         }
-        public void PublicarAtividade(Atividade atividade)
+        public void PublicarAtividade(AtividadeBase atividade)
         {
             if (atividade is null)
             {

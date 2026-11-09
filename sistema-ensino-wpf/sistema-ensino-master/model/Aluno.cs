@@ -24,14 +24,14 @@ namespace sistema_ensino.model
 
         }
 
-        public List<Atividade> VisualizarAtividades()
+        public List<AtividadeBase> VisualizarAtividades()
         {
             if (Turma is null)
             {
-                return new List<Atividade>();
+                return new List<AtividadeBase>();
             }
 
-            var atividades = new List<Atividade>();
+            var atividades = new List<AtividadeBase>();
 
             foreach (var instrutor in Turma.Instrutores)
             {

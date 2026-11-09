@@ -25,7 +25,7 @@ namespace sistema_ensino.controller
         }
 
         // Adiciona uma atividade existente a uma matéria.
-        public void AdicionarAtividade(int idMateria, Atividade atividade)
+        public void AdicionarAtividade(int idMateria, AtividadeBase atividade)
         {
             if (atividade is null)
                 throw new ArgumentNullException(nameof(atividade));
@@ -35,7 +35,7 @@ namespace sistema_ensino.controller
             if (materia is null)
                 throw new InvalidOperationException("Matéria não encontrada.");
 
-            Atividade? atividadeBanco =
+            AtividadeBase? atividadeBanco =
                 _materiaRepository.BuscarAtividadePorId(atividade.Id);
 
             if (atividadeBanco is null)
@@ -47,7 +47,7 @@ namespace sistema_ensino.controller
         }
 
         // Remove uma atividade de uma matéria.
-        public void RemoverAtividade(int idMateria, Atividade atividade)
+        public void RemoverAtividade(int idMateria, AtividadeBase atividade)
         {
             if (atividade is null)
                 throw new ArgumentNullException(nameof(atividade));
@@ -57,7 +57,7 @@ namespace sistema_ensino.controller
             if (materia is null)
                 throw new InvalidOperationException("Matéria não encontrada.");
 
-            Atividade? atividadeAssociada = materia.Atividades
+            AtividadeBase? atividadeAssociada = materia.Atividades
                 .FirstOrDefault(a => a.Id == atividade.Id);
 
             if (atividadeAssociada is null)
@@ -70,12 +70,12 @@ namespace sistema_ensino.controller
         }
 
         // Consulta as atividades de uma matéria.
-        public List<Atividade> ConsultarAtividades(int idMateria)
+        public List<AtividadeBase> ConsultarAtividades(int idMateria)
         {
             Materia? materia = BuscarMateriaPorId(idMateria);
 
             if (materia is null)
-                return new List<Atividade>();
+                return new List<AtividadeBase>();
 
             return materia.Atividades;
         }

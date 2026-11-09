@@ -34,7 +34,7 @@ namespace sistema_ensino.data
         public DbSet<Instrutor> Instrutores => Set<Instrutor>();
         public DbSet<Turma> Turmas => Set<Turma>();
         public DbSet<Materia> Materias => Set<Materia>();
-        public DbSet<Atividade> Atividades => Set<Atividade>();
+        public DbSet<AtividadeBase> Atividades => Set<AtividadeBase>();
         public DbSet<CategoriaAtividade> CategoriasAtividade => Set<CategoriaAtividade>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -87,7 +87,15 @@ namespace sistema_ensino.data
                     new { Id = 5, Nome = "Projeto" }
                 );
 
-            modelBuilder.Entity<Atividade>()
+            modelBuilder.Entity<AtividadeBase>()
+                .HasDiscriminator<string>("TipoAtividade")
+                .HasValue<Prova>("Prova")
+                .HasValue<Trabalho>("Trabalho")
+                .HasValue<Seminario>("Seminario")
+                .HasValue<Exercicio>("Exercicio")
+                .HasValue<Projeto>("Projeto");
+
+            modelBuilder.Entity<AtividadeBase>()
                 .HasOne(atividade => atividade.Categoria)
                 .WithMany()
                 .HasForeignKey(atividade => atividade.CategoriaAtividadeId)

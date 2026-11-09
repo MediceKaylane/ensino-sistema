@@ -27,13 +27,13 @@ namespace sistema_ensino.controller
         }
 
         // Consulta as atividades disponibilizadas pelos instrutores da turma.
-        public List<Atividade> VisualizarAtividades(string matricula)
+        public List<AtividadeBase> VisualizarAtividades(string matricula)
         {
             Aluno? aluno = BuscarAlunoPorMatricula(matricula);
 
             if (aluno is null)
             {
-                return new List<Atividade>();
+                return new List<AtividadeBase>();
             }
 
             return aluno.VisualizarAtividades();

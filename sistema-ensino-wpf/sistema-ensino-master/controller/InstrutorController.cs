@@ -29,7 +29,7 @@ namespace sistema_ensino.controller
         }
 
         // Publica uma atividade.
-        public void PublicarAtividade(string matricula, Atividade atividade)
+        public void PublicarAtividade(string matricula, AtividadeBase atividade)
         {
             if (atividade is null)
             {
@@ -49,13 +49,13 @@ namespace sistema_ensino.controller
         }
 
         // Consulta as atividades cadastradas pelo instrutor.
-        public List<Atividade> ConsultarAtividades(string matricula)
+        public List<AtividadeBase> ConsultarAtividades(string matricula)
         {
             Instrutor? instrutor = BuscarInstrutorPorMatricula(matricula);
 
             if (instrutor is null)
             {
-                return new List<Atividade>();
+                return new List<AtividadeBase>();
             }
 
             return instrutor.Atividades;

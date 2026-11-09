@@ -9,7 +9,7 @@ namespace sistema_ensino.model
         public int Id { get; private set; }
         public string Nome { get; private set; }
         public string Tipo { get; private set; }
-        public List<Atividade> Atividades { get; private set; } = new();
+        public List<AtividadeBase> Atividades { get; private set; } = new();
 
         public Materia(int id, string nome, string tipo)
         {
@@ -33,7 +33,7 @@ namespace sistema_ensino.model
             Tipo = tipo;
         }
 
-        public void AdicionarAtividade(Atividade atividade)
+        public void AdicionarAtividade(AtividadeBase atividade)
         {
             if (atividade is null)
             {
@@ -43,7 +43,7 @@ namespace sistema_ensino.model
             Atividades.Add(atividade);
         }
 
-        public void RemoverAtividade(Atividade atividade)
+        public void RemoverAtividade(AtividadeBase atividade)
         {
             if (atividade is null)
             {

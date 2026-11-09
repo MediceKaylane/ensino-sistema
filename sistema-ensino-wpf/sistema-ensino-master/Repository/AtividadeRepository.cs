@@ -20,20 +20,20 @@ namespace sistema_ensino.Repository
         }
 
         // Busca uma atividade pelo ID.
-        public Atividade? BuscarAtividadePorId(int id)
+        public AtividadeBase? BuscarAtividadePorId(int id)
         {
             return _contexto.Atividades
                 .FirstOrDefault(atividade => atividade.Id == id);
         }
 
         // Consulta todas as atividades cadastradas.
-        public List<Atividade> ConsultarAtividades()
+        public List<AtividadeBase> ConsultarAtividades()
         {
             return _contexto.Atividades.ToList();
         }
 
         // Consulta atividades por categoria utilizando SQL direto.
-        public List<Atividade> ConsultarAtividadesPorCategoria(int categoriaId)
+        public List<AtividadeBase> ConsultarAtividadesPorCategoria(int categoriaId)
         {
             return _contexto.Atividades
                 .FromSqlInterpolated(
@@ -45,9 +45,9 @@ namespace sistema_ensino.Repository
 
 
         // Consulta atividades por categoria utilizando ADO.NET, sem Entity Framework.
-        public List<Atividade> ConsultarAtividadesPorCategoriaSemEF(int categoriaId)
+        public List<AtividadeBase> ConsultarAtividadesPorCategoriaSemEF(int categoriaId)
         {
-            var atividades = new List<Atividade>();
+            var atividades = new List<AtividadeBase>();
 
             string connectionString =
                 @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=SistemaEnsinoDB;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;";
@@ -83,7 +83,7 @@ namespace sistema_ensino.Repository
                                 leitor.GetString(leitor.GetOrdinal("CategoriaNome"))
                             );
 
-                            var atividade = new Atividade(
+                            var atividade = CriarAtividade(
                                 leitor.GetInt32(leitor.GetOrdinal("Id")),
                                 leitor.GetString(leitor.GetOrdinal("Titulo")),
                                 leitor.GetString(leitor.GetOrdinal("Descricao")),
@@ -99,6 +99,25 @@ namespace sistema_ensino.Repository
             }
 
             return atividades;
+        }
+
+        private static AtividadeBase CriarAtividade(
+            int id,
+            string titulo,
+            string descricao,
+            string arquivoOuLink,
+            int categoriaAtividadeId,
+            CategoriaAtividade categoria)
+        {
+            return categoriaAtividadeId switch
+            {
+                1 => new Prova(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
+                2 => new Trabalho(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
+                3 => new Exercicio(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
+                4 => new Seminario(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
+                5 => new Projeto(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
+                _ => throw new InvalidOperationException("Categoria de atividade desconhecida.")
+            };
         }
 
     }
