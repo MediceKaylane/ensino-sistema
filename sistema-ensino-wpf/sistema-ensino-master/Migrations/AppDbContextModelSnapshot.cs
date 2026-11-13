@@ -36,7 +36,7 @@ namespace sistema_ensino.Migrations
                     b.ToTable("MateriaTurma");
                 });
 
-            modelBuilder.Entity("sistema_ensino.model.AtividadeBase", b =>
+            modelBuilder.Entity("sistema_ensino.model.Atividades", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -48,9 +48,6 @@ namespace sistema_ensino.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CategoriaAtividadeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Descricao")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -61,31 +58,20 @@ namespace sistema_ensino.Migrations
                     b.Property<int?>("MateriaId")
                         .HasColumnType("int");
 
-                    b.Property<string>("TipoAtividade")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoriaAtividadeId");
-
                     b.HasIndex("InstrutorMatricula");
 
                     b.HasIndex("MateriaId");
 
                     b.ToTable("Atividades");
-
-                    b.HasDiscriminator<string>("TipoAtividade").HasValue("AtividadeBase");
-
-                    b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("sistema_ensino.model.CategoriaAtividade", b =>
+            modelBuilder.Entity("sistema_ensino.model.Avaliacoes", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -93,41 +79,23 @@ namespace sistema_ensino.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("AlunoMatricula")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AtividadeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Nota")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("CategoriasAtividade");
+                    b.HasIndex("AlunoMatricula");
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Nome = "Prova"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Nome = "Trabalho"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Nome = "Exercicio"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Nome = "Seminario"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Nome = "Projeto"
-                        });
+                    b.HasIndex("AtividadeId");
+
+                    b.ToTable("Avaliacoes");
                 });
 
             modelBuilder.Entity("sistema_ensino.model.Materia", b =>
@@ -202,41 +170,6 @@ namespace sistema_ensino.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("sistema_ensino.model.Exercicio", b =>
-                {
-                    b.HasBaseType("sistema_ensino.model.AtividadeBase");
-
-                    b.HasDiscriminator().HasValue("Exercicio");
-                });
-
-            modelBuilder.Entity("sistema_ensino.model.Projeto", b =>
-                {
-                    b.HasBaseType("sistema_ensino.model.AtividadeBase");
-
-                    b.HasDiscriminator().HasValue("Projeto");
-                });
-
-            modelBuilder.Entity("sistema_ensino.model.Prova", b =>
-                {
-                    b.HasBaseType("sistema_ensino.model.AtividadeBase");
-
-                    b.HasDiscriminator().HasValue("Prova");
-                });
-
-            modelBuilder.Entity("sistema_ensino.model.Seminario", b =>
-                {
-                    b.HasBaseType("sistema_ensino.model.AtividadeBase");
-
-                    b.HasDiscriminator().HasValue("Seminario");
-                });
-
-            modelBuilder.Entity("sistema_ensino.model.Trabalho", b =>
-                {
-                    b.HasBaseType("sistema_ensino.model.AtividadeBase");
-
-                    b.HasDiscriminator().HasValue("Trabalho");
-                });
-
             modelBuilder.Entity("sistema_ensino.model.Aluno", b =>
                 {
                     b.HasBaseType("sistema_ensino.model.Usuario");
@@ -282,25 +215,40 @@ namespace sistema_ensino.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("sistema_ensino.model.AtividadeBase", b =>
+            modelBuilder.Entity("sistema_ensino.model.Atividades", b =>
                 {
-                    b.HasOne("sistema_ensino.model.CategoriaAtividade", "Categoria")
-                        .WithMany()
-                        .HasForeignKey("CategoriaAtividadeId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("sistema_ensino.model.Instrutor", null)
+                    b.HasOne("sistema_ensino.model.Instrutor", "Instrutor")
                         .WithMany("Atividades")
                         .HasForeignKey("InstrutorMatricula")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("sistema_ensino.model.Materia", null)
+                    b.HasOne("sistema_ensino.model.Materia", "Materia")
                         .WithMany("Atividades")
                         .HasForeignKey("MateriaId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("Categoria");
+                    b.Navigation("Instrutor");
+
+                    b.Navigation("Materia");
+                });
+
+            modelBuilder.Entity("sistema_ensino.model.Avaliacoes", b =>
+                {
+                    b.HasOne("sistema_ensino.model.Aluno", "Aluno")
+                        .WithMany("Avaliacoes")
+                        .HasForeignKey("AlunoMatricula")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("sistema_ensino.model.Atividades", "Atividade")
+                        .WithMany("Avaliacoes")
+                        .HasForeignKey("AtividadeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Aluno");
+
+                    b.Navigation("Atividade");
                 });
 
             modelBuilder.Entity("sistema_ensino.model.Aluno", b =>
@@ -321,6 +269,11 @@ namespace sistema_ensino.Migrations
                     b.Navigation("Turma");
                 });
 
+            modelBuilder.Entity("sistema_ensino.model.Atividades", b =>
+                {
+                    b.Navigation("Avaliacoes");
+                });
+
             modelBuilder.Entity("sistema_ensino.model.Materia", b =>
                 {
                     b.Navigation("Atividades");
@@ -331,6 +284,11 @@ namespace sistema_ensino.Migrations
                     b.Navigation("Alunos");
 
                     b.Navigation("Instrutores");
+                });
+
+            modelBuilder.Entity("sistema_ensino.model.Aluno", b =>
+                {
+                    b.Navigation("Avaliacoes");
                 });
 
             modelBuilder.Entity("sistema_ensino.model.Instrutor", b =>

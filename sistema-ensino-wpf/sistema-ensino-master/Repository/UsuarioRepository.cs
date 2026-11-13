@@ -36,9 +36,13 @@ namespace sistema_ensino.Repository
         {
             if (usuario is Instrutor instrutor)
             {
-                _contexto.Entry(instrutor).Reference(item => item.Turma).Load();
+                _contexto.Entry(instrutor).Reference(item => item.Turma).Query()
+                    .Include(turma => turma!.Materias)
+                    .Include(turma => turma!.Alunos)
+                    .Load();
                 _contexto.Entry(instrutor).Collection(item => item.Atividades).Query()
-                    .Include(item => item.Categoria).Load();
+                    .Include(atividade => atividade.Materia)
+                    .Load();
             }
 
             if (usuario is Aluno aluno)
@@ -48,8 +52,16 @@ namespace sistema_ensino.Repository
                 {
                     _contexto.Entry(turma).Collection(item => item.Materias).Load();
                     _contexto.Entry(turma).Collection(item => item.Instrutores).Query()
-                        .Include(item => item.Atividades).ThenInclude(item => item.Categoria).Load();
+                        .Include(instrutor => instrutor.Atividades)
+                            .ThenInclude(atividade => atividade.Materia)
+                        .Load();
                 }
+
+                _contexto.Entry(aluno).Collection(item => item.Avaliacoes).Query()
+                    .Where(avaliacao => avaliacao.AlunoMatricula == aluno.Matricula)
+                    .Include(avaliacao => avaliacao.Atividade)
+                        .ThenInclude(atividade => atividade.Materia)
+                    .Load();
             }
         }
 

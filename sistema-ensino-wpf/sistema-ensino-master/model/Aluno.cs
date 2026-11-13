@@ -1,12 +1,15 @@
 ﻿using sistema_ensino.model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace sistema_ensino.model
 {
     public class Aluno : Usuario
     {
         public Turma? Turma { get; private set; }
+        public List<Avaliacoes> Avaliacoes { get; private set; } = new();
+
         public Aluno(string matricula) : base(matricula)
         {
         }
@@ -24,21 +27,29 @@ namespace sistema_ensino.model
 
         }
 
-        public List<AtividadeBase> VisualizarAtividades()
+        public List<Atividades> VisualizarAtividades()
         {
             if (Turma is null)
             {
-                return new List<AtividadeBase>();
+                return new List<Atividades>();
             }
 
-            var atividades = new List<AtividadeBase>();
+            return Turma.Instrutores
+                .Where(instrutor => instrutor.Turma?.Id == Turma.Id)
+                .SelectMany(instrutor => instrutor.Atividades)
+                .Where(atividade =>
+                    atividade.InstrutorMatricula == atividade.Instrutor?.Matricula &&
+                    atividade.MateriaId.HasValue &&
+                    Turma.Materias.Any(materia => materia.Id == atividade.MateriaId.Value))
+                .DistinctBy(atividade => atividade.Id)
+                .ToList();
+        }
 
-            foreach (var instrutor in Turma.Instrutores)
-            {
-                atividades.AddRange(instrutor.Atividades);
-            }
-
-            return atividades;
+        public List<Avaliacoes> VisualizarAvaliacoes()
+        {
+            return Avaliacoes
+                .Where(avaliacao => avaliacao.AlunoMatricula == Matricula)
+                .ToList();
         }
 
         public string EnviarResposta()

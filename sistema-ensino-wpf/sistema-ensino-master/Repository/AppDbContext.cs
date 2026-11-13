@@ -34,8 +34,8 @@ namespace sistema_ensino.data
         public DbSet<Instrutor> Instrutores => Set<Instrutor>();
         public DbSet<Turma> Turmas => Set<Turma>();
         public DbSet<Materia> Materias => Set<Materia>();
-        public DbSet<AtividadeBase> Atividades => Set<AtividadeBase>();
-        public DbSet<CategoriaAtividade> CategoriasAtividade => Set<CategoriaAtividade>();
+        public DbSet<Atividades> Atividades => Set<Atividades>();
+        public DbSet<Avaliacoes> Avaliacoes => Set<Avaliacoes>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -61,44 +61,35 @@ namespace sistema_ensino.data
 
             modelBuilder.Entity<Instrutor>()
                 .HasMany(instrutor => instrutor.Atividades)
-                .WithOne()
+                .WithOne(atividade => atividade.Instrutor)
+                .HasForeignKey(atividade => atividade.InstrutorMatricula)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Materia>()
                 .HasMany(materia => materia.Atividades)
-                .WithOne()
+                .WithOne(atividade => atividade.Materia)
+                .HasForeignKey(atividade => atividade.MateriaId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Avaliacoes>()
+                .Property(avaliacao => avaliacao.Nota)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
 
-            modelBuilder.Entity<CategoriaAtividade>()
-                .HasKey(categoria => categoria.Id);
-
-            modelBuilder.Entity<CategoriaAtividade>()
-                .Property(categoria => categoria.Nome)
+            modelBuilder.Entity<Avaliacoes>()
+                .HasOne(avaliacao => avaliacao.Aluno)
+                .WithMany(aluno => aluno.Avaliacoes)
+                .HasForeignKey(avaliacao => avaliacao.AlunoMatricula)
                 .IsRequired()
-                .HasMaxLength(50);
+                .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<CategoriaAtividade>()
-                .HasData(
-                    new { Id = 1, Nome = "Prova" },
-                    new { Id = 2, Nome = "Trabalho" },
-                    new { Id = 3, Nome = "Exercicio" },
-                    new { Id = 4, Nome = "Seminario" },
-                    new { Id = 5, Nome = "Projeto" }
-                );
-
-            modelBuilder.Entity<AtividadeBase>()
-                .HasDiscriminator<string>("TipoAtividade")
-                .HasValue<Prova>("Prova")
-                .HasValue<Trabalho>("Trabalho")
-                .HasValue<Seminario>("Seminario")
-                .HasValue<Exercicio>("Exercicio")
-                .HasValue<Projeto>("Projeto");
-
-            modelBuilder.Entity<AtividadeBase>()
-                .HasOne(atividade => atividade.Categoria)
-                .WithMany()
-                .HasForeignKey(atividade => atividade.CategoriaAtividadeId)
+            modelBuilder.Entity<Avaliacoes>()
+                .HasOne(avaliacao => avaliacao.Atividade)
+                .WithMany(atividade => atividade.Avaliacoes)
+                .HasForeignKey(avaliacao => avaliacao.AtividadeId)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

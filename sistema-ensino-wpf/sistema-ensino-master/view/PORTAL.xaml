@@ -14,13 +14,21 @@
                 </StackPanel>
             </DockPanel>
         </Border>
-        <Border DockPanel.Dock="Left" Background="White" Width="180" Padding="14,24">
+        <Border DockPanel.Dock="Left" Background="White" Width="190" Padding="14,24">
             <DockPanel>
                 <Button DockPanel.Dock="Bottom" Content="Meu perfil" Click="MostrarPerfil" Style="{StaticResource BotaoSuave}"/>
                 <StackPanel>
                     <TextBlock Text="NAVEGAÇÃO" Foreground="#536583" FontWeight="Bold" FontSize="12" Margin="5,0,0,12"/>
                     <Button x:Name="Principal" Click="MostrarPrincipal" Style="{StaticResource BotaoSuave}" Margin="0,0,0,8"/>
-                    <Button Content="Atividades" Click="MostrarAtividades" Style="{StaticResource BotaoSuave}"/>
+                    <Button Content="Atividades" Click="MostrarAtividades" Style="{StaticResource BotaoSuave}" Margin="0,0,0,8"/>
+                    <Button x:Name="NotasAluno" Content="Minhas notas" Click="MostrarAvaliacoes"
+                            Style="{StaticResource BotaoSuave}" Visibility="Collapsed"/>
+                    <StackPanel x:Name="AcoesInstrutor" Visibility="Collapsed">
+                        <Button Content="Publicar atividade" Click="AbrirFormularioAtividade"
+                                Style="{StaticResource BotaoSuave}" Margin="0,0,0,8"/>
+                        <Button Content="Publicar notas" Click="AbrirFormularioAvaliacao"
+                                Style="{StaticResource BotaoSuave}"/>
+                    </StackPanel>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -28,6 +36,29 @@
             <StackPanel Margin="28">
                 <TextBlock x:Name="Secao" FontSize="29" FontWeight="Bold"/>
                 <TextBlock x:Name="Descricao" Foreground="#536583" TextWrapping="Wrap" Margin="0,6,0,20"/>
+                <StackPanel x:Name="FormularioAtividade" Visibility="Collapsed" MaxWidth="560" HorizontalAlignment="Left">
+                    <TextBlock Text="Instruções da atividade" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock Text="Título" Style="{StaticResource RotuloPortal}"/>
+                    <TextBox x:Name="TituloAtividade" Style="{StaticResource EntradaTexto}"/>
+                    <TextBlock Text="Descrição" Style="{StaticResource RotuloPortal}"/>
+                    <TextBox x:Name="DescricaoAtividade" Style="{StaticResource EntradaTexto}"/>
+                    <TextBlock Text="Arquivo ou link" Style="{StaticResource RotuloPortal}"/>
+                    <TextBox x:Name="ArquivoOuLinkAtividade" Style="{StaticResource EntradaTexto}"/>
+                    <TextBlock Text="Matéria" Style="{StaticResource RotuloPortal}"/>
+                    <ComboBox x:Name="MateriaAtividade" DisplayMemberPath="Nome" MinHeight="36"/>
+                    <Button Content="Publicar atividade" Click="SalvarAtividade" Style="{StaticResource BotaoPortal}" Margin="0,16,0,0"/>
+                </StackPanel>
+                <StackPanel x:Name="FormularioAvaliacao" Visibility="Collapsed" MaxWidth="560" HorizontalAlignment="Left">
+                    <TextBlock Text="Nota individual" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock Text="Atividade" Style="{StaticResource RotuloPortal}"/>
+                    <ComboBox x:Name="AtividadeAvaliacao" DisplayMemberPath="Titulo" MinHeight="36"/>
+                    <TextBlock Text="Aluno da sua turma" Style="{StaticResource RotuloPortal}"/>
+                    <ComboBox x:Name="AlunoAvaliacao" DisplayMemberPath="Nome" MinHeight="36"/>
+                    <TextBlock Text="Nota" Style="{StaticResource RotuloPortal}"/>
+                    <TextBox x:Name="NotaAvaliacao" Style="{StaticResource EntradaTexto}"/>
+                    <Button Content="Publicar nota" Click="SalvarAvaliacao" Style="{StaticResource BotaoPortal}" Margin="0,16,0,0"/>
+                </StackPanel>
+                <TextBlock x:Name="MensagemAcao" Foreground="#A6293C" TextWrapping="Wrap" Margin="0,12,0,0"/>
                 <ItemsControl x:Name="Itens">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>

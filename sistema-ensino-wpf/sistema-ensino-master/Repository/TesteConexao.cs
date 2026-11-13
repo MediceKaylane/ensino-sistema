@@ -66,16 +66,36 @@ namespace sistema_ensino.data
                     Testar("Tabela de atividades", () =>
                         contexto.Atividades.Any());
 
-                    // 3. Categorias pré-cadastradas
-                    Testar("Categorias de atividades", () =>
-                    {
-                        var categorias =
-                            contexto.CategoriasAtividade.ToList();
+                    Testar("Tabela de avaliações", () =>
+                        contexto.Avaliacoes.Any());
 
-                        if (categorias.Count < 5)
-                            throw new Exception(
-                                "As cinco categorias esperadas não foram encontradas."
-                            );
+                    Testar("Validação de publicação de atividade", () =>
+                    {
+                        var atividade = new Atividades("", "", "");
+                        try
+                        {
+                            atividade.Publicar();
+                            throw new Exception("A publicação aceitou instruções incompletas.");
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
+                    });
+
+                    Testar("Validação de vínculo de avaliação", () =>
+                    {
+                        var avaliacao = new Avaliacoes(
+                            5m,
+                            new Aluno("TESTE_AVALIACAO"),
+                            new Atividades("Atividade de teste", "Descrição", "Link"));
+                        try
+                        {
+                            avaliacao.Publicar();
+                            throw new Exception("A avaliação aceitou uma atividade não persistida.");
+                        }
+                        catch (InvalidOperationException)
+                        {
+                        }
                     });
 
                     // 4. Herança de Usuario
@@ -175,60 +195,46 @@ namespace sistema_ensino.data
                         }
                     });
 
-                    // 9. Relacionamento Atividade e Categoria
-                    Testar("Relacionamento entre Atividade e Categoria", () =>
+                    // 9. Relacionamentos da atividade
+                    Testar("Relacionamentos entre atividade, instrutor e matéria", () =>
                     {
                         var atividades = contexto.Atividades
-                            .Include(a => a.Categoria)
+                            .Include(atividade => atividade.Instrutor)
+                            .Include(atividade => atividade.Materia)
                             .ToList();
 
                         foreach (var atividade in atividades)
                         {
-                            if (atividade.Categoria == null)
-                                throw new Exception(
-                                    "Atividade sem categoria."
-                                );
+                            if (atividade.InstrutorMatricula is not null && atividade.Instrutor is null)
+                                throw new Exception("Atividade com referência de instrutor inválida.");
+
+                            if (atividade.MateriaId.HasValue && atividade.Materia is null)
+                                throw new Exception("Atividade com referência de matéria inválida.");
+                        }
+                    });
+
+                    Testar("Relacionamentos obrigatórios das avaliações", () =>
+                    {
+                        var avaliacoes = contexto.Avaliacoes
+                            .Include(avaliacao => avaliacao.Aluno)
+                            .Include(avaliacao => avaliacao.Atividade)
+                            .ToList();
+
+                        if (avaliacoes.Any(avaliacao =>
+                            avaliacao.Aluno is null || avaliacao.Atividade is null))
+                        {
+                            throw new Exception("Avaliação sem aluno ou atividade.");
                         }
                     });
 
                     var repositorio = new AtividadeRepository(contexto);
                     var controller = new AtividadeController(repositorio);
 
-                    // 10. Consulta SQL utilizando Entity Framework
-                    Testar("Consulta SQL via EF Core - Prova de Lógica", () =>
-                    {
-                        var atividades =
-                            controller.ConsultarAtividadesPorCategoria(1);
+                    Testar("Consulta de atividades por matéria via EF Core", () =>
+                        controller.ConsultarAtividadesPorMateria(1));
 
-                        var prova = atividades.FirstOrDefault(
-                            a => a.Titulo == "Prova de Lógica"
-                        );
-
-                        if (prova == null)
-                        {
-                            throw new Exception(
-                                "A atividade Prova de Lógica não foi encontrada na categoria Prova."
-                            );
-                        }
-                    });
-
-                    // 11. Consulta SQL sem Entity Framework (ADO.NET)
-                    Testar("Consulta SQL sem EF - Prova de Lógica", () =>
-                    {
-                        var atividades =
-                            controller.ConsultarAtividadesPorCategoriaSemEF(1);
-
-                        var prova = atividades.FirstOrDefault(
-                            a => a.Titulo == "Prova de Lógica"
-                        );
-
-                        if (prova == null)
-                        {
-                            throw new Exception(
-                                "A atividade Prova de Lógica não foi encontrada na consulta ADO.NET."
-                            );
-                        }
-                    });
+                    Testar("Consulta de atividades por matéria via ADO.NET", () =>
+                        controller.ConsultarAtividadesPorMateriaSemEF(1));
                 }
             }
             catch (Exception erro)

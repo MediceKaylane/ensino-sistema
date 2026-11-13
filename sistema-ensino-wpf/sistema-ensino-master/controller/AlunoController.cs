@@ -27,16 +27,26 @@ namespace sistema_ensino.controller
         }
 
         // Consulta as atividades disponibilizadas pelos instrutores da turma.
-        public List<AtividadeBase> VisualizarAtividades(string matricula)
+        public List<Atividades> VisualizarAtividades(string matricula)
         {
             Aluno? aluno = BuscarAlunoPorMatricula(matricula);
 
             if (aluno is null)
             {
-                return new List<AtividadeBase>();
+                return new List<Atividades>();
             }
 
             return aluno.VisualizarAtividades();
+        }
+
+        public List<Avaliacoes> VisualizarAvaliacoes(Aluno alunoAutenticado)
+        {
+            if (alunoAutenticado is null)
+            {
+                throw new ArgumentNullException(nameof(alunoAutenticado));
+            }
+
+            return _alunoRepository.BuscarAvaliacoesDoAluno(alunoAutenticado);
         }
 
         // Verifica se o aluno existe antes de enviar uma resposta.

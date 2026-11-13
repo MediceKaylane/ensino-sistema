@@ -24,7 +24,7 @@ namespace sistema_ensino.Repository
         }
 
         // Busca uma atividade pelo ID.
-        public AtividadeBase? BuscarAtividadePorId(int id)
+        public Atividades? BuscarAtividadePorId(int id)
         {
             return _contexto.Atividades.Find(id);
         }

@@ -9,7 +9,7 @@ namespace sistema_ensino.model
         public int Id { get; private set; }
         public string Nome { get; private set; }
         public string Tipo { get; private set; }
-        public List<AtividadeBase> Atividades { get; private set; } = new();
+        public List<Atividades> Atividades { get; private set; } = new();
 
         public Materia(int id, string nome, string tipo)
         {
@@ -33,24 +33,31 @@ namespace sistema_ensino.model
             Tipo = tipo;
         }
 
-        public void AdicionarAtividade(AtividadeBase atividade)
+        public void AdicionarAtividade(Atividades atividade)
         {
             if (atividade is null)
             {
                 throw new ArgumentNullException(nameof(atividade));
             }
 
-            Atividades.Add(atividade);
+            atividade.VincularMateria(this);
+            if (!Atividades.Contains(atividade))
+            {
+                Atividades.Add(atividade);
+            }
         }
 
-        public void RemoverAtividade(AtividadeBase atividade)
+        public void RemoverAtividade(Atividades atividade)
         {
             if (atividade is null)
             {
                 throw new ArgumentNullException(nameof(atividade));
             }
 
-            Atividades.Remove(atividade);
+            if (Atividades.Remove(atividade))
+            {
+                atividade.DesvincularMateria();
+            }
         }
     }
 }

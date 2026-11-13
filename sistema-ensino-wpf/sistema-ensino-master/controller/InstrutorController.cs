@@ -28,34 +28,52 @@ namespace sistema_ensino.controller
             return _instrutorRepository.BuscarInstrutorPorMatricula(matricula);
         }
 
-        // Publica uma atividade.
-        public void PublicarAtividade(string matricula, AtividadeBase atividade)
+        public void PublicarAtividade(string matricula, Atividades atividade, int materiaId)
         {
+            if (string.IsNullOrWhiteSpace(matricula))
+            {
+                throw new ArgumentException("A matrícula do instrutor é obrigatória.", nameof(matricula));
+            }
+
             if (atividade is null)
             {
                 throw new ArgumentNullException(nameof(atividade));
             }
 
-            Instrutor? instrutor = BuscarInstrutorPorMatricula(matricula);
-
-            if (instrutor is null)
-            {
-                throw new InvalidOperationException("Instrutor não encontrado.");
-            }
-
-            instrutor.PublicarAtividade(atividade);
-
-            _instrutorRepository.Salvar();
+            _instrutorRepository.PublicarAtividade(matricula, atividade, materiaId);
         }
 
-        // Consulta as atividades cadastradas pelo instrutor.
-        public List<AtividadeBase> ConsultarAtividades(string matricula)
+        public void PublicarAvaliacao(
+            string instrutorMatricula,
+            string alunoMatricula,
+            int atividadeId,
+            decimal nota)
+        {
+            if (string.IsNullOrWhiteSpace(instrutorMatricula))
+            {
+                throw new ArgumentException("A matrícula do instrutor é obrigatória.", nameof(instrutorMatricula));
+            }
+
+            if (string.IsNullOrWhiteSpace(alunoMatricula))
+            {
+                throw new ArgumentException("A matrícula do aluno é obrigatória.", nameof(alunoMatricula));
+            }
+
+            if (atividadeId <= 0)
+            {
+                throw new ArgumentException("O ID da atividade deve ser maior que zero.", nameof(atividadeId));
+            }
+
+            _instrutorRepository.PublicarAvaliacao(instrutorMatricula, alunoMatricula, atividadeId, nota);
+        }
+
+        public List<Atividades> ConsultarAtividades(string matricula)
         {
             Instrutor? instrutor = BuscarInstrutorPorMatricula(matricula);
 
             if (instrutor is null)
             {
-                return new List<AtividadeBase>();
+                return new List<Atividades>();
             }
 
             return instrutor.Atividades;

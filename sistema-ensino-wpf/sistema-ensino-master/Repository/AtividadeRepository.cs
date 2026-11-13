@@ -1,12 +1,11 @@
-﻿
-using sistema_ensino.data;
+﻿using sistema_ensino.data;
 using sistema_ensino.model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Linq;
 
 namespace sistema_ensino.Repository
 {
@@ -19,106 +18,75 @@ namespace sistema_ensino.Repository
             _contexto = contexto ?? throw new ArgumentNullException(nameof(contexto));
         }
 
-        // Busca uma atividade pelo ID.
-        public AtividadeBase? BuscarAtividadePorId(int id)
+        public Atividades? BuscarAtividadePorId(int id)
         {
             return _contexto.Atividades
+                .Include(atividade => atividade.Instrutor)
+                .Include(atividade => atividade.Materia)
                 .FirstOrDefault(atividade => atividade.Id == id);
         }
 
-        // Consulta todas as atividades cadastradas.
-        public List<AtividadeBase> ConsultarAtividades()
-        {
-            return _contexto.Atividades.ToList();
-        }
-
-        // Consulta atividades por categoria utilizando SQL direto.
-        public List<AtividadeBase> ConsultarAtividadesPorCategoria(int categoriaId)
+        public List<Atividades> ConsultarAtividades()
         {
             return _contexto.Atividades
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Atividades WHERE CategoriaAtividadeId = {categoriaId}"
-                )
-                .Include(atividade => atividade.Categoria)
+                .Include(atividade => atividade.Instrutor)
+                .Include(atividade => atividade.Materia)
                 .ToList();
         }
 
-
-        // Consulta atividades por categoria utilizando ADO.NET, sem Entity Framework.
-        public List<AtividadeBase> ConsultarAtividadesPorCategoriaSemEF(int categoriaId)
+        public List<Atividades> ConsultarAtividadesPorMateria(int materiaId)
         {
-            var atividades = new List<AtividadeBase>();
+            return _contexto.Atividades
+                .FromSqlInterpolated(
+                    $"SELECT * FROM Atividades WHERE MateriaId = {materiaId}")
+                .Include(atividade => atividade.Instrutor)
+                .Include(atividade => atividade.Materia)
+                .ToList();
+        }
 
+        public List<Atividades> ConsultarAtividadesPorMateriaSemEF(int materiaId)
+        {
+            var atividades = new List<Atividades>();
             string connectionString =
                 @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=SistemaEnsinoDB;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;";
 
-            string sql = @"
-        SELECT
-            a.Id,
-            a.Titulo,
-            a.Descricao,
-            a.ArquivoOuLink,
-            a.CategoriaAtividadeId,
-            c.Id AS CategoriaId,
-            c.Nome AS CategoriaNome
-        FROM Atividades AS a
-        INNER JOIN CategoriasAtividade AS c
-            ON c.Id = a.CategoriaAtividadeId
-        WHERE a.CategoriaAtividadeId = @categoriaId;";
+            const string sql = @"
+                SELECT a.Id, a.Titulo, a.Descricao, a.ArquivoOuLink,
+                       u.Matricula AS InstrutorMatricula,
+                       m.Id AS MateriaId, m.Nome AS MateriaNome, m.Tipo AS MateriaTipo
+                FROM Atividades AS a
+                INNER JOIN Materias AS m ON m.Id = a.MateriaId
+                LEFT JOIN Usuario AS u
+                    ON u.Matricula = a.InstrutorMatricula AND u.Discriminator = 'Instrutor'
+                WHERE a.MateriaId = @materiaId;";
 
-            using (var conexao = new SqlConnection(connectionString))
+            using var conexao = new SqlConnection(connectionString);
+            conexao.Open();
+
+            using var comando = new SqlCommand(sql, conexao);
+            comando.Parameters.Add("@materiaId", SqlDbType.Int).Value = materiaId;
+
+            using var leitor = comando.ExecuteReader();
+            while (leitor.Read())
             {
-                conexao.Open();
+                Instrutor? instrutor = leitor.IsDBNull(leitor.GetOrdinal("InstrutorMatricula"))
+                    ? null
+                    : new Instrutor(leitor.GetString(leitor.GetOrdinal("InstrutorMatricula")));
+                var materia = new Materia(
+                    leitor.GetInt32(leitor.GetOrdinal("MateriaId")),
+                    leitor.GetString(leitor.GetOrdinal("MateriaNome")),
+                    leitor.GetString(leitor.GetOrdinal("MateriaTipo")));
 
-                using (var comando = new SqlCommand(sql, conexao))
-                {
-                    comando.Parameters.Add("@categoriaId", SqlDbType.Int).Value = categoriaId;
-
-                    using (var leitor = comando.ExecuteReader())
-                    {
-                        while (leitor.Read())
-                        {
-                            var categoria = new CategoriaAtividade(
-                                leitor.GetInt32(leitor.GetOrdinal("CategoriaId")),
-                                leitor.GetString(leitor.GetOrdinal("CategoriaNome"))
-                            );
-
-                            var atividade = CriarAtividade(
-                                leitor.GetInt32(leitor.GetOrdinal("Id")),
-                                leitor.GetString(leitor.GetOrdinal("Titulo")),
-                                leitor.GetString(leitor.GetOrdinal("Descricao")),
-                                leitor.GetString(leitor.GetOrdinal("ArquivoOuLink")),
-                                leitor.GetInt32(leitor.GetOrdinal("CategoriaAtividadeId")),
-                                categoria
-                            );
-
-                            atividades.Add(atividade);
-                        }
-                    }
-                }
+                atividades.Add(new Atividades(
+                    leitor.GetInt32(leitor.GetOrdinal("Id")),
+                    leitor.GetString(leitor.GetOrdinal("Titulo")),
+                    leitor.GetString(leitor.GetOrdinal("Descricao")),
+                    leitor.GetString(leitor.GetOrdinal("ArquivoOuLink")),
+                    instrutor,
+                    materia));
             }
 
             return atividades;
         }
-
-        private static AtividadeBase CriarAtividade(
-            int id,
-            string titulo,
-            string descricao,
-            string arquivoOuLink,
-            int categoriaAtividadeId,
-            CategoriaAtividade categoria)
-        {
-            return categoriaAtividadeId switch
-            {
-                1 => new Prova(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
-                2 => new Trabalho(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
-                3 => new Exercicio(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
-                4 => new Seminario(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
-                5 => new Projeto(id, titulo, descricao, arquivoOuLink, categoriaAtividadeId, categoria),
-                _ => throw new InvalidOperationException("Categoria de atividade desconhecida.")
-            };
-        }
-
     }
 }
