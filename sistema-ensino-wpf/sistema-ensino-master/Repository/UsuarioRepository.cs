@@ -36,7 +36,8 @@ namespace sistema_ensino.Repository
         {
             if (usuario is Instrutor instrutor)
             {
-                _contexto.Entry(instrutor).Reference(item => item.Turma).Query()
+                _contexto.Entry(instrutor).Collection(item => item.Turmas).Query()
+                    .AsSplitQuery()
                     .Include(turma => turma!.Materias)
                     .Include(turma => turma!.Alunos)
                     .Load();

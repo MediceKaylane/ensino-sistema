@@ -21,6 +21,15 @@ namespace sistema_ensino.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("InstrutorTurma", b =>
+                {
+                    b.Property<string>("InstrutoresMatricula").HasColumnType("nvarchar(450)");
+                    b.Property<int>("TurmasId").HasColumnType("int");
+                    b.HasKey("InstrutoresMatricula", "TurmasId");
+                    b.HasIndex("TurmasId");
+                    b.ToTable("InstrutorTurma");
+                });
+
             modelBuilder.Entity("MateriaTurma", b =>
                 {
                     b.Property<int>("MateriasId")
@@ -68,6 +77,8 @@ namespace sistema_ensino.Migrations
 
                     b.HasIndex("MateriaId");
 
+                    b.Property<int?>("TurmaId").HasColumnType("int");
+                    b.HasIndex("TurmaId");
                     b.ToTable("Atividades");
                 });
 
@@ -192,12 +203,31 @@ namespace sistema_ensino.Migrations
                 {
                     b.HasBaseType("sistema_ensino.model.Usuario");
 
-                    b.Property<int?>("TurmaId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("TurmaId");
-
                     b.HasDiscriminator().HasValue("Instrutor");
+                });
+
+            modelBuilder.Entity("InstrutorTurma", b =>
+                {
+                    b.Property<string>("InstrutoresMatricula").HasColumnType("nvarchar(450)");
+                    b.Property<int>("TurmasId").HasColumnType("int");
+                    b.HasKey("InstrutoresMatricula", "TurmasId");
+                    b.HasIndex("TurmasId");
+                    b.ToTable("InstrutorTurma");
+                });
+
+            modelBuilder.Entity("InstrutorTurma", b =>
+                {
+                    b.HasOne("sistema_ensino.model.Instrutor", null)
+                        .WithMany()
+                        .HasForeignKey("InstrutoresMatricula")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("sistema_ensino.model.Turma", null)
+                        .WithMany()
+                        .HasForeignKey("TurmasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MateriaTurma", b =>
@@ -227,7 +257,13 @@ namespace sistema_ensino.Migrations
                         .HasForeignKey("MateriaId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("sistema_ensino.model.Turma", "Turma")
+                        .WithMany()
+                        .HasForeignKey("TurmaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Instrutor");
+                    b.Navigation("Turma");
 
                     b.Navigation("Materia");
                 });
@@ -260,15 +296,6 @@ namespace sistema_ensino.Migrations
                     b.Navigation("Turma");
                 });
 
-            modelBuilder.Entity("sistema_ensino.model.Instrutor", b =>
-                {
-                    b.HasOne("sistema_ensino.model.Turma", "Turma")
-                        .WithMany("Instrutores")
-                        .HasForeignKey("TurmaId");
-
-                    b.Navigation("Turma");
-                });
-
             modelBuilder.Entity("sistema_ensino.model.Atividades", b =>
                 {
                     b.Navigation("Avaliacoes");
@@ -283,7 +310,6 @@ namespace sistema_ensino.Migrations
                 {
                     b.Navigation("Alunos");
 
-                    b.Navigation("Instrutores");
                 });
 
             modelBuilder.Entity("sistema_ensino.model.Aluno", b =>

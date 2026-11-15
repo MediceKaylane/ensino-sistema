@@ -28,7 +28,7 @@ namespace sistema_ensino.controller
             return _instrutorRepository.BuscarInstrutorPorMatricula(matricula);
         }
 
-        public void PublicarAtividade(string matricula, Atividades atividade, int materiaId)
+        public void PublicarAtividade(string matricula, Atividades atividade, int turmaId, int materiaId)
         {
             if (string.IsNullOrWhiteSpace(matricula))
             {
@@ -40,11 +40,12 @@ namespace sistema_ensino.controller
                 throw new ArgumentNullException(nameof(atividade));
             }
 
-            _instrutorRepository.PublicarAtividade(matricula, atividade, materiaId);
+            _instrutorRepository.PublicarAtividade(matricula, atividade, turmaId, materiaId);
         }
 
         public void PublicarAvaliacao(
             string instrutorMatricula,
+            int turmaId,
             string alunoMatricula,
             int atividadeId,
             decimal nota)
@@ -64,7 +65,7 @@ namespace sistema_ensino.controller
                 throw new ArgumentException("O ID da atividade deve ser maior que zero.", nameof(atividadeId));
             }
 
-            _instrutorRepository.PublicarAvaliacao(instrutorMatricula, alunoMatricula, atividadeId, nota);
+            _instrutorRepository.PublicarAvaliacao(instrutorMatricula, turmaId, alunoMatricula, atividadeId, nota);
         }
 
         public List<Atividades> ConsultarAtividades(string matricula)

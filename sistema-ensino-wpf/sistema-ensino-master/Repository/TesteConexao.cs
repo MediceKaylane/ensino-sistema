@@ -147,14 +147,12 @@ namespace sistema_ensino.data
                     Testar("Relacionamento entre Instrutor e Turma", () =>
                     {
                         var instrutores = contexto.Instrutores
-                            .Include(i => i.Turma)
+                            .Include(i => i.Turmas)
                             .ToList();
 
                         foreach (var instrutor in instrutores)
                         {
-                            if (instrutor.Turma != null &&
-                                !instrutor.Turma.Instrutores.Any(
-                                    i => i.Matricula == instrutor.Matricula))
+                            if (instrutor.Turmas.Any(turma => !turma.Instrutores.Contains(instrutor)))
                             {
                                 throw new Exception(
                                     "Relacionamento inconsistente."

@@ -13,6 +13,8 @@ namespace sistema_ensino.model
         public Instrutor? Instrutor { get; private set; }
         public int? MateriaId { get; private set; }
         public Materia? Materia { get; private set; }
+        public int? TurmaId { get; private set; }
+        public Turma? Turma { get; private set; }
         public List<Avaliacoes> Avaliacoes { get; private set; } = new();
 
         private Atividades()
@@ -97,6 +99,12 @@ namespace sistema_ensino.model
         {
             Materia = materia ?? throw new ArgumentNullException(nameof(materia));
             MateriaId = materia.Id;
+        }
+
+        internal void VincularTurma(Turma turma)
+        {
+            Turma = turma ?? throw new ArgumentNullException(nameof(turma));
+            TurmaId = turma.Id;
         }
 
         internal void DesvincularMateria()

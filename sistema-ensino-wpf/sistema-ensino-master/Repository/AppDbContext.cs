@@ -51,9 +51,20 @@ namespace sistema_ensino.data
                 .HasOne(aluno => aluno.Turma)
                 .WithMany(turma => turma.Alunos);
 
+            modelBuilder.Entity<Aluno>()
+                .Property<int?>("TurmaId")
+                .HasColumnName("Aluno_TurmaId");
+
             modelBuilder.Entity<Instrutor>()
-                .HasOne(instrutor => instrutor.Turma)
-                .WithMany(turma => turma.Instrutores);
+                .HasMany(instrutor => instrutor.Turmas)
+                .WithMany(turma => turma.Instrutores)
+                .UsingEntity("InstrutorTurma");
+
+            modelBuilder.Entity<Atividades>()
+                .HasOne(atividade => atividade.Turma)
+                .WithMany()
+                .HasForeignKey(atividade => atividade.TurmaId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Turma>()
                  .HasMany(turma => turma.Materias)

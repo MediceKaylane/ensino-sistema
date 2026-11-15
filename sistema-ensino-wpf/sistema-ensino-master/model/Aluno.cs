@@ -35,10 +35,10 @@ namespace sistema_ensino.model
             }
 
             return Turma.Instrutores
-                .Where(instrutor => instrutor.Turma?.Id == Turma.Id)
                 .SelectMany(instrutor => instrutor.Atividades)
                 .Where(atividade =>
                     atividade.InstrutorMatricula == atividade.Instrutor?.Matricula &&
+                    atividade.TurmaId == Turma.Id &&
                     atividade.MateriaId.HasValue &&
                     Turma.Materias.Any(materia => materia.Id == atividade.MateriaId.Value))
                 .DistinctBy(atividade => atividade.Id)

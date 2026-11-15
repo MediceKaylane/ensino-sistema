@@ -18,16 +18,17 @@ namespace sistema_ensino.Repository
         public Instrutor? BuscarInstrutorPorMatricula(string matricula)
         {
             return _contexto.Instrutores
-                .Include(instrutor => instrutor.Turma)
-                    .ThenInclude(turma => turma!.Materias)
-                .Include(instrutor => instrutor.Turma)
-                    .ThenInclude(turma => turma!.Alunos)
+                .AsSplitQuery()
+                .Include(instrutor => instrutor.Turmas)
+                    .ThenInclude(turma => turma.Materias)
+                .Include(instrutor => instrutor.Turmas)
+                    .ThenInclude(turma => turma.Alunos)
                 .Include(instrutor => instrutor.Atividades)
                     .ThenInclude(atividade => atividade.Materia)
                 .FirstOrDefault(instrutor => instrutor.Matricula == matricula);
         }
 
-        public void PublicarAtividade(string matricula, Atividades atividade, int materiaId)
+        public void PublicarAtividade(string matricula, Atividades atividade, int turmaId, int materiaId)
         {
             if (atividade is null)
             {
@@ -36,11 +37,14 @@ namespace sistema_ensino.Repository
 
             Instrutor instrutor = BuscarInstrutorPorMatricula(matricula)
                 ?? throw new InvalidOperationException("Instrutor não encontrado.");
-            Materia materia = instrutor.Turma?.Materias.FirstOrDefault(item => item.Id == materiaId)
+            Turma turma = instrutor.Turmas.FirstOrDefault(item => item.Id == turmaId)
+                ?? throw new InvalidOperationException("Selecione uma turma vinculada ao instrutor.");
+            Materia materia = turma.Materias.FirstOrDefault(item => item.Id == materiaId)
                 ?? throw new InvalidOperationException("A matéria não pertence à turma do instrutor.");
 
             atividade.VincularInstrutor(instrutor);
             atividade.VincularMateria(materia);
+            atividade.VincularTurma(turma);
             instrutor.PublicarAtividade(atividade);
             _contexto.Atividades.Add(atividade);
             _contexto.SaveChanges();
@@ -48,32 +52,20 @@ namespace sistema_ensino.Repository
 
         public void PublicarAvaliacao(
             string instrutorMatricula,
+            int turmaId,
             string alunoMatricula,
             int atividadeId,
             decimal nota)
         {
             Instrutor instrutor = BuscarInstrutorPorMatricula(instrutorMatricula)
                 ?? throw new InvalidOperationException("Instrutor não encontrado.");
-            Aluno aluno = _contexto.Alunos
-                .Include(item => item.Turma)
-                .FirstOrDefault(item => item.Matricula == alunoMatricula)
-                ?? throw new InvalidOperationException("Aluno não encontrado.");
-            Atividades atividade = _contexto.Atividades
-                .Include(item => item.Instrutor)
-                .Include(item => item.Materia)
-                .FirstOrDefault(item => item.Id == atividadeId)
-                ?? throw new InvalidOperationException("Atividade não encontrada.");
-
-            if (instrutor.Turma is null || aluno.Turma?.Id != instrutor.Turma.Id)
-            {
-                throw new InvalidOperationException("O aluno não pertence à turma do instrutor.");
-            }
-
-            if (atividade.InstrutorMatricula != instrutor.Matricula ||
-                !instrutor.Turma.Materias.Any(materia => materia.Id == atividade.MateriaId))
-            {
-                throw new InvalidOperationException("A atividade não pertence ao instrutor e à sua turma.");
-            }
+            Turma turma = instrutor.Turmas.FirstOrDefault(item => item.Id == turmaId)
+                ?? throw new InvalidOperationException("Selecione uma turma vinculada ao instrutor.");
+            Aluno aluno = turma.Alunos.FirstOrDefault(item => item.Matricula == alunoMatricula)
+                ?? throw new InvalidOperationException("O aluno não pertence à turma selecionada.");
+            Atividades atividade = instrutor.Atividades.FirstOrDefault(item => item.Id == atividadeId &&
+                item.TurmaId == turmaId && turma.Materias.Any(materia => materia.Id == item.MateriaId))
+                ?? throw new InvalidOperationException("A atividade não pertence ao instrutor e à turma selecionada.");
 
             var avaliacao = new Avaliacoes(nota, aluno, atividade);
             avaliacao.Publicar();

@@ -55,7 +55,6 @@ namespace sistema_ensino.model
                 throw new ArgumentNullException(nameof(instrutor));
             }
 
-            Instrutores.Add(instrutor);
             instrutor.VincularTurma(this);
         }
 

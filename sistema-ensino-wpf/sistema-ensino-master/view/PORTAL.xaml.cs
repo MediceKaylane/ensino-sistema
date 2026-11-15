@@ -23,9 +23,12 @@ namespace sistema_ensino
             if (usuario is Instrutor instrutor)
             {
                 AcoesInstrutor.Visibility = Visibility.Visible;
-                MateriaAtividade.ItemsSource = instrutor.Turma?.Materias;
-                AtividadeAvaliacao.ItemsSource = instrutor.Atividades;
-                AlunoAvaliacao.ItemsSource = instrutor.Turma?.Alunos;
+                var turmas = instrutor.Turmas.OrderBy(turma => turma.Id)
+                    .Select(turma => new OpcaoTurma(turma)).ToArray();
+                TurmaAtividade.ItemsSource = turmas;
+                TurmaAvaliacao.ItemsSource = turmas;
+                TurmaAtividade.DisplayMemberPath = nameof(OpcaoTurma.Rotulo);
+                TurmaAvaliacao.DisplayMemberPath = nameof(OpcaoTurma.Rotulo);
             }
             else
             {
@@ -40,7 +43,8 @@ namespace sistema_ensino
             OcultarFormularios();
             if (_usuario is Instrutor instrutor)
             {
-                string[] turmas = instrutor.Turma is Turma turma ? [$"Turma {turma.Id}  •  {turma.Tipo}"] : [];
+                var turmas = instrutor.Turmas.OrderBy(turma => turma.Id)
+                    .Select(turma => new OpcaoTurma(turma).Rotulo);
                 Exibir("Minhas turmas", "Turmas vinculadas à sua matrícula.", turmas, "Nenhuma turma vinculada.");
             }
             else
@@ -87,19 +91,68 @@ namespace sistema_ensino
 
         private void AbrirFormularioAtividade(object sender, RoutedEventArgs e)
         {
-            ExibirFormulario(FormularioAtividade, "Publicar atividade", "Informe as instruções e a matéria da turma.");
+            ExibirFormulario(FormularioAtividade, "Publicar atividade", "Selecione a turma e a matéria antes de preencher a atividade.");
+            if (TurmaAtividade.Items.Count == 0)
+            {
+                MensagemAcao.Text = "Nenhuma turma vinculada à sua matrícula.";
+            }
         }
 
         private void AbrirFormularioAvaliacao(object sender, RoutedEventArgs e)
         {
-            ExibirFormulario(FormularioAvaliacao, "Publicar notas", "Selecione uma atividade e um aluno da sua turma.");
+            ExibirFormulario(FormularioAvaliacao, "Publicar notas", "Selecione a turma, o aluno e a atividade.");
+            if (TurmaAvaliacao.Items.Count == 0)
+            {
+                MensagemAcao.Text = "Nenhuma turma vinculada à sua matrícula.";
+            }
+        }
+
+        private sealed record OpcaoTurma(Turma Turma)
+        {
+            public string Rotulo => $"Turma {Turma.Id}  •  {Turma.Tipo}";
+        }
+
+        private void SelecionarTurmaAtividade(object sender, SelectionChangedEventArgs e)
+        {
+            var turma = (TurmaAtividade.SelectedItem as OpcaoTurma)?.Turma;
+            MateriaAtividade.ItemsSource = turma?.Materias.OrderBy(materia => materia.Nome).ToArray();
+            MateriaAtividade.IsEnabled = turma?.Materias.Count > 0;
+            MensagemAcao.Text = turma is not null && turma.Materias.Count == 0
+                ? "Nenhuma matéria vinculada à turma selecionada."
+                : string.Empty;
+        }
+
+        private void SelecionarTurmaAvaliacao(object sender, SelectionChangedEventArgs e)
+        {
+            AtualizarOpcoesAvaliacao();
+        }
+
+        private void AtualizarOpcoesAvaliacao()
+        {
+            var turma = (TurmaAvaliacao.SelectedItem as OpcaoTurma)?.Turma;
+            var instrutor = _usuario as Instrutor;
+            var alunos = turma?.Alunos.OrderBy(aluno => aluno.Nome).ThenBy(aluno => aluno.Matricula).ToArray();
+            var atividades = instrutor?.Atividades
+                .Where(atividade => turma is not null && atividade.TurmaId == turma.Id &&
+                    turma.Materias.Any(materia => materia.Id == atividade.MateriaId))
+                .OrderBy(atividade => atividade.Titulo).ToArray();
+            AlunoAvaliacao.ItemsSource = alunos;
+            AtividadeAvaliacao.ItemsSource = atividades;
+            AlunoAvaliacao.IsEnabled = alunos?.Length > 0;
+            AtividadeAvaliacao.IsEnabled = atividades?.Length > 0;
+            MensagemAcao.Text = turma is null ? string.Empty
+                : alunos?.Length == 0 ? "Nenhum aluno vinculado à turma selecionada."
+                : atividades?.Length == 0 ? "Nenhuma atividade publicada para a turma selecionada."
+                : string.Empty;
         }
 
         private void SalvarAtividade(object sender, RoutedEventArgs e)
         {
-            if (_usuario is not Instrutor instrutor || MateriaAtividade.SelectedItem is not Materia materia)
+            if (_usuario is not Instrutor instrutor ||
+                TurmaAtividade.SelectedItem is not OpcaoTurma opcao ||
+                MateriaAtividade.SelectedItem is not Materia materia)
             {
-                MensagemAcao.Text = "Selecione uma matéria da sua turma.";
+                MensagemAcao.Text = "Selecione a turma e uma matéria vinculada a ela.";
                 return;
             }
 
@@ -111,9 +164,9 @@ namespace sistema_ensino
                     ArquivoOuLinkAtividade.Text.Trim());
                 using var contexto = new AppDbContext();
                 var controller = new InstrutorController(new InstrutorRepository(contexto));
-                controller.PublicarAtividade(instrutor.Matricula, atividade, materia.Id);
-                AtividadeAvaliacao.ItemsSource = new InstrutorController(new InstrutorRepository(contexto))
-                    .ConsultarAtividades(instrutor.Matricula);
+                controller.PublicarAtividade(instrutor.Matricula, atividade, opcao.Turma.Id, materia.Id);
+                instrutor.Atividades.Add(atividade);
+                AtualizarOpcoesAvaliacao();
                 MensagemAcao.Foreground = System.Windows.Media.Brushes.DarkGreen;
                 MensagemAcao.Text = "Atividade publicada com sucesso.";
             }
@@ -138,10 +191,11 @@ namespace sistema_ensino
         private void SalvarAvaliacao(object sender, RoutedEventArgs e)
         {
             if (_usuario is not Instrutor instrutor ||
+                TurmaAvaliacao.SelectedItem is not OpcaoTurma opcao ||
                 AlunoAvaliacao.SelectedItem is not Aluno aluno ||
                 AtividadeAvaliacao.SelectedItem is not Atividades atividade)
             {
-                MensagemAcao.Text = "Selecione uma atividade e um aluno da sua turma.";
+                MensagemAcao.Text = "Selecione a turma, o aluno e a atividade.";
                 return;
             }
 
@@ -155,7 +209,7 @@ namespace sistema_ensino
             {
                 using var contexto = new AppDbContext();
                 var controller = new InstrutorController(new InstrutorRepository(contexto));
-                controller.PublicarAvaliacao(instrutor.Matricula, aluno.Matricula, atividade.Id, nota);
+                controller.PublicarAvaliacao(instrutor.Matricula, opcao.Turma.Id, aluno.Matricula, atividade.Id, nota);
                 MensagemAcao.Foreground = System.Windows.Media.Brushes.DarkGreen;
                 MensagemAcao.Text = "Nota publicada com sucesso.";
             }
